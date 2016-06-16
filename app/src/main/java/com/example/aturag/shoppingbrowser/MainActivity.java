@@ -2,6 +2,8 @@ package com.example.aturag.shoppingbrowser;
 
 import android.app.Activity;
 import android.provider.Settings;
+import android.support.v4.app.FragmentManager;
+import android.support.v4.view.ViewPager;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.text.Editable;
@@ -20,6 +22,8 @@ public class MainActivity extends Activity {
 
     private EditText mEdittext;
     private WebView mWebView;
+
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -49,6 +53,5 @@ public class MainActivity extends Activity {
         mWebView.setWebViewClient(new WebViewClient());
         mWebView.loadUrl(url);
     }
-
 
 }
