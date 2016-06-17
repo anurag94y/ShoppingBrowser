@@ -1,57 +1,65 @@
 package com.example.aturag.shoppingbrowser;
 
-import android.app.Activity;
-import android.provider.Settings;
-import android.support.v4.app.FragmentManager;
+import android.app.ActionBar;
+import android.content.Intent;
+import android.support.v4.app.FragmentActivity;
+import android.support.v4.app.NavUtils;
+import android.support.v4.app.TaskStackBuilder;
 import android.support.v4.view.ViewPager;
-import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
-import android.text.Editable;
-import android.text.method.KeyListener;
-import android.view.KeyEvent;
-import android.view.View;
-import android.view.inputmethod.EditorInfo;
-import android.view.inputmethod.InputMethodManager;
-import android.webkit.WebView;
-import android.webkit.WebViewClient;
-import android.widget.EditText;
-import android.widget.TextView;
-import android.widget.Toast;
+import android.view.MenuItem;
 
-public class MainActivity extends Activity {
+public class MainActivity extends FragmentActivity {
 
-    private EditText mEdittext;
-    private WebView mWebView;
-
+    private CollectionPagerAdapter mDemoCollectionPagerAdapter;
+    private  ViewPager mViewPager;
 
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_main);
+        setContentView(R.layout.main_activity);
 
-        mEdittext = (EditText) findViewById(R.id.editText);
+        mDemoCollectionPagerAdapter = new CollectionPagerAdapter(getSupportFragmentManager());
 
-        OpenUrl("https://www.facebook.com/");
-        mEdittext.setOnEditorActionListener(new EditText.OnEditorActionListener() {
-            @Override
-            public boolean onEditorAction(TextView tv, int actionId, KeyEvent event) {
-                if (actionId == EditorInfo.IME_ACTION_DONE || actionId == KeyEvent.KEYCODE_ENTER) {
-                    InputMethodManager imm = (InputMethodManager)getSystemService(INPUT_METHOD_SERVICE);
-                    imm.hideSoftInputFromWindow(mEdittext.getWindowToken(), 0);
-                    OpenUrl(String.valueOf(mEdittext.getText()));
-                    return true;
+        // Set up action bar.
+        final ActionBar actionBar = getActionBar();
+
+        // Specify that the Home button should show an "Up" caret, indicating that touching the
+        // button will take the user one step up in the application's hierarchy.
+         // actionBar.setDisplayHomeAsUpEnabled(true);
+
+        // Set up the ViewPager, attaching the adapter.
+        mViewPager = (ViewPager) findViewById(R.id.pager);
+        mViewPager.setAdapter(mDemoCollectionPagerAdapter);
+
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        switch (item.getItemId()) {
+            case android.R.id.home:
+                // This is called when the Home (Up) button is pressed in the action bar.
+                // Create a simple intent that starts the hierarchical parent activity and
+                // use NavUtils in the Support Package to ensure proper handling of Up.
+                Intent upIntent = new Intent(this, MainActivity.class);
+                if (NavUtils.shouldUpRecreateTask(this, upIntent)) {
+                    // This activity is not part of the application's task, so create a new task
+                    // with a synthesized back stack.
+                    TaskStackBuilder.from(this)
+                            // If there are ancestor activities, they should be added here.
+                            .addNextIntent(upIntent)
+                            .startActivities();
+                    finish();
+                } else {
+                    // This activity is part of the application's task, so simply
+                    // navigate up to the hierarchical parent activity.
+                    NavUtils.navigateUpTo(this, upIntent);
                 }
-                return false;
-            }
-        });
+                return true;
+        }
+        return super.onOptionsItemSelected(item);
     }
 
-    private void OpenUrl(String url) {
-        System.out.println(">>>>" + url);
-        mWebView = (WebView) findViewById(R.id.webView);
-        mWebView.setWebViewClient(new WebViewClient());
-        mWebView.loadUrl(url);
-    }
 
 }
