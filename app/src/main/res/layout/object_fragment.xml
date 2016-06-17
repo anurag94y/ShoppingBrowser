@@ -45,17 +45,17 @@
         android:layout_width="match_parent"
         android:layout_height="3dp"
         android:id="@+id/progressBar"
-        android:background="#0331fe" />
+        android:background="#fefefe"
+        android:progressBackgroundTint="#ffffff" />
 
-    <ScrollView
+    <RelativeLayout
         android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:id="@+id/scrollView">
+        android:layout_height="wrap_content">
 
-        <WebView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:id="@+id/webView" />
-    </ScrollView>
+            <WebView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:id="@+id/webView" />
+    </RelativeLayout>
 
 </LinearLayout>

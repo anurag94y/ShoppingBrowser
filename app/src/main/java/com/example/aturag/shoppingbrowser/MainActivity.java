@@ -1,7 +1,12 @@
 package com.example.aturag.shoppingbrowser;
 
 import android.app.ActionBar;
+import android.content.Context;
 import android.content.Intent;
+import android.content.pm.ResolveInfo;
+import android.graphics.Bitmap;
+import android.net.Uri;
+import android.os.Handler;
 import android.support.v4.app.FragmentActivity;
 import android.support.v4.app.NavUtils;
 import android.support.v4.app.TaskStackBuilder;
@@ -14,37 +19,136 @@ import android.view.KeyEvent;
 import android.view.View;
 import android.view.inputmethod.EditorInfo;
 import android.view.inputmethod.InputMethodManager;
+import android.webkit.CookieSyncManager;
+import android.webkit.DownloadListener;
+import android.webkit.JavascriptInterface;
 import android.webkit.WebChromeClient;
+import android.webkit.WebSettings;
 import android.webkit.WebView;
 import android.webkit.WebViewClient;
 import android.widget.EditText;
+import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.Toast;
+
+import java.util.HashMap;
 
 public class MainActivity extends FragmentActivity {
 
     private CollectionPagerAdapter mDemoCollectionPagerAdapter;
     private  ViewPager mViewPager;
+    private WebView mWebView;
+    private ProgressBar mProgressBar;
+    private EditText mEdittext;
+    public static final int MIN_HTML_ALLOWED_LENGTH = 40;
+    public static boolean _isFullScreenBanner;
+    private Handler _handler;
+
+    public MainActivity() {
+        this._isFullScreenBanner = false;
+        this._handler = new Handler();
+    }
 
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.main_activity);
-
-        mDemoCollectionPagerAdapter = new CollectionPagerAdapter(getSupportFragmentManager());
-
-        // Set up action bar.
+        setContentView(R.layout.object_fragment);
+        enableCookies();
+        /*mDemoCollectionPagerAdapter = new CollectionPagerAdapter(getSupportFragmentManager());
         final ActionBar actionBar = getActionBar();
-
-        // Specify that the Home button should show an "Up" caret, indicating that touching the
-        // button will take the user one step up in the application's hierarchy.
-         // actionBar.setDisplayHomeAsUpEnabled(true);
-
-        // Set up the ViewPager, attaching the adapter.
         mViewPager = (ViewPager) findViewById(R.id.pager);
-        mViewPager.setAdapter(mDemoCollectionPagerAdapter);
+        mViewPager.setAdapter(mDemoCollectionPagerAdapter);*/
 
+        mWebView = (WebView) findViewById(R.id.webView);
+        mProgressBar = (ProgressBar) findViewById(R.id.progressBar);
+        mProgressBar.setVisibility(View.GONE);
+        mEdittext = (EditText) findViewById(R.id.editText);
+        OpenUrl("http://www.google.com");
+        mEdittext.setOnEditorActionListener(new EditText.OnEditorActionListener() {
+            @Override
+            public boolean onEditorAction(TextView tv, int actionId, KeyEvent event) {
+                if (actionId == EditorInfo.IME_ACTION_DONE || actionId == KeyEvent.KEYCODE_ENTER) {
+                    InputMethodManager imm = (InputMethodManager)getSystemService(INPUT_METHOD_SERVICE);
+                    imm.hideSoftInputFromWindow(mEdittext.getWindowToken(), 0);
+                    Uri url = Uri.parse(String.valueOf(mEdittext.getText()));
+                    System.out.println(">>>> url "+ url);
+                    OpenUrl(Parse_Uri(String.valueOf(mEdittext.getText())));
+                    return true;
+                }
+                // If it wasn't the Back key or there's no web page history, bubble up to the default
+                // system behavior (probably exit the activity)
+                return false;
+            }
+        });
+    }
+
+    private String Parse_Uri(String Url) { // Input Can be http/https :// google.com or www.google.com or google
+
+        int http_idx = Url.indexOf("http:");
+        int https_idx = Url.indexOf("https:");
+        String Prefix_path = "";
+        String Suffix_path = "";
+
+        if(http_idx == -1 && https_idx == -1) {
+            Prefix_path += "http://";
+        }
+
+        int www_idx = Url.indexOf("www.");
+        if(www_idx == -1) {
+            int dot_idx = Url.indexOf('.');
+            if(dot_idx == -1) {
+                Suffix_path = ".com";
+            }
+        } else {
+            int cnt_of_dots = 0;
+            for(int i = www_idx; i < Url.length(); ++i) {
+                if(Url.charAt(i) == '.') {
+                    cnt_of_dots += 1;
+                }
+            }
+            if(cnt_of_dots <= 1) {
+                Suffix_path = ".com";
+            }
+        }
+
+        return Prefix_path + Url + Suffix_path; // Output Can be http/https :// www.google.com or google.com
+    }
+
+    private void OpenUrl(String url) {
+        mWebView.setWebChromeClient(new WebChromeClient() {
+            public void onProgressChanged(WebView view, int progress) {
+                if(progress < 100 && mProgressBar.getVisibility() == ProgressBar.GONE){
+                    mProgressBar.setVisibility(ProgressBar.VISIBLE);
+                }
+                System.out.println(">>>> " + progress);
+                mProgressBar.setProgress(progress);
+                if(progress == 100) {
+                    mProgressBar.setVisibility(ProgressBar.GONE);
+                }
+            }
+        });
+
+        this.mWebView.resumeTimers();
+        this.mWebView.getSettings().setJavaScriptEnabled(true);
+        this.mWebView.addJavascriptInterface(new WebAppInterface(this), "Android");
+        this.mWebView.setWebViewClient(new mWebViewClient());
+        this.mWebView.setDownloadListener(new mDownloadListener());
+
+        WebSettings webSettings = mWebView.getSettings();
+        webSettings.setJavaScriptEnabled(true);
+        mWebView.loadUrl(url);
+    }
+
+
+    @Override
+    public void onBackPressed() {
+        if(mWebView.canGoBack()) {
+            mWebView.goBack();
+        }
+        else {
+            super.onBackPressed();
+        }
     }
 
     @Override
@@ -73,5 +177,110 @@ public class MainActivity extends FragmentActivity {
         return super.onOptionsItemSelected(item);
     }
 
+
+    class mWebViewClient extends WebViewClient {
+        mWebViewClient() {
+        }
+
+        public void onPageStarted(WebView view, String url, Bitmap favicon) {
+            _handleRedirect(url);
+            super.onPageStarted(view, url, favicon);
+        }
+
+        public boolean shouldOverrideUrlLoading(WebView view, String url) {
+            return _handleRedirect(url);
+        }
+
+        private boolean _handleRedirect(String url) {
+            MainActivity.this._handler.removeCallbacksAndMessages(null);
+            if (url == null) {
+                return false;
+            }
+            boolean isHttpUrl = MainActivity._isHttpUrl(url);
+            boolean isMarketUrl = MainActivity._isMarketUrl(url);
+            if (isMarketUrl && isHttpUrl) {
+                url = MainActivity._replaceHttpWithMarketUrl(url);
+            }
+            if (!isMarketUrl && isHttpUrl) {
+                return false;
+            }
+            Intent intent = new Intent("android.intent.action.VIEW", Uri.parse(url));
+            if (deviceCanHandleIntent(MainActivity.this, intent)) {
+                MainActivity.this.startActivity(intent);
+                MainActivity.this.finish();
+                return true;
+            } else if (!MainActivity.this._isFullScreenBanner) {
+                return false;
+            } else {
+                return false;
+            }
+        }
+    }
+
+    class mDownloadListener implements DownloadListener {
+        mDownloadListener() {
+        }
+
+        public void onDownloadStart(String url, String userAgent, String contentDisposition, String mimetype, long contentLength) {
+            Intent intent = new Intent("android.intent.action.VIEW", Uri.parse(url));
+            ResolveInfo ri = MainActivity.this.getPackageManager().resolveActivity(intent, 0);
+            if (ri != null) {
+                MainActivity.this.startActivity(intent);
+            }
+        }
+    }
+
+
+
+    private void enableCookies() {
+        CookieSyncManager.createInstance(this);
+        CookieSyncManager.getInstance().startSync();
+    }
+
+    private static String _replaceHttpWithMarketUrl(String url) {
+        if (!_isMarketUrl(url)) {
+            return url;
+        }
+        return "market://details?" + Uri.parse(url).getEncodedQuery();
+    }
+
+    private static boolean _isMarketUrl(String url) {
+        Uri uri = Uri.parse(url);
+        String host = uri.getHost();
+        return uri.getScheme().equals("market") || (host != null && host.equals("play.google.com"));
+    }
+
+    private static boolean _isHttpUrl(String url) {
+        String scheme = Uri.parse(url).getScheme();
+        return scheme.equals("http") || scheme.equals("https");
+    }
+
+    public static boolean deviceCanHandleIntent(Context context, Intent intent) {
+        try {
+            if (context.getPackageManager().queryIntentActivities(intent, 0).isEmpty()) {
+                return false;
+            }
+            return true;
+        } catch (NullPointerException e) {
+            return false;
+        }
+    }
+
+    protected void onPause() {
+        super.onPause();
+        CookieSyncManager.getInstance().stopSync();
+    }
+
+    protected void onResume() {
+        super.onResume();
+        this.mWebView.resumeTimers();
+        CookieSyncManager.getInstance().startSync();
+    }
+
+    protected void onDestroy() {
+        super.onDestroy();
+        this.mWebView.destroy();
+        this.mWebView = null;
+    }
 
 }

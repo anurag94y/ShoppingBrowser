@@ -32,10 +32,6 @@ public class ObjectFragment extends Fragment {
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
         final View rootView = inflater.inflate(R.layout.object_fragment, container, false);
-        //View rootView = inflater.inflate(R.layout.fragment_collection_object, container, false);
-        /*Bundle args = getArguments();
-        ((TextView) rootView.findViewById(android.R.id.text1)).setText(
-                Integer.toString(args.getInt(ARG_OBJECT)));*/
         mWebView = (WebView) rootView.findViewById(R.id.webView);
         mProgressBar = (ProgressBar) rootView.findViewById(R.id.progressBar);
         mProgressBar.setVisibility(View.GONE);
@@ -99,40 +95,27 @@ public class ObjectFragment extends Fragment {
 
     private void OpenUrl(String url) {
         mWebView.setWebViewClient(new WebViewClient());
+        mWebView.setWebChromeClient(new WebChromeClient() {
+            public void onProgressChanged(WebView view, int progress) {
+            if(progress < 100 && mProgressBar.getVisibility() == ProgressBar.GONE){
+                mProgressBar.setVisibility(ProgressBar.VISIBLE);
+            }
+            System.out.println(">>>> " + progress);
+            mProgressBar.setProgress(progress);
+            if(progress == 100) {
+                mProgressBar.setVisibility(ProgressBar.GONE);
+            }
+        }
+        });
         WebSettings webSettings = mWebView.getSettings();
         webSettings.setJavaScriptEnabled(true);
-        webSettings.setBuiltInZoomControls(true);
-        mWebView.addJavascriptInterface(new WebAppInterface(context), "Android");
+        //webSettings.setBuiltInZoomControls(true);
+   //     mWebView.addJavascriptInterface(new WebAppInterface(context), "Android");
         mWebView.loadUrl(url);
     }
 
-    public class WebViewClient extends android.webkit.WebViewClient
-    {
-        @Override
-        public void onPageStarted(WebView view, String url, Bitmap favicon) {
 
-            // TODO Auto-generated method stub
-            super.onPageStarted(view, url, favicon);
-            mProgressBar.setVisibility(View.VISIBLE);
-        }
 
-        @Override
-        public boolean shouldOverrideUrlLoading(WebView view, String url) {
-
-            // TODO Auto-generated method stub
-            view.loadUrl(url);
-            return true;
-        }
-        @Override
-        public void onPageFinished(WebView view, String url) {
-
-            // TODO Auto-generated method stub
-
-            super.onPageFinished(view, url);
-            mProgressBar.setVisibility(View.GONE);
-        }
-
-    }
 
 
     /*private void OpenUrl(String url) {
