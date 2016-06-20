@@ -9,7 +9,7 @@ import java.util.Vector;
  * Created by Flame Alchemist on 11/10/2015.
  */
 public class Crawler {
-    private Vector<String> Names,Links,Prices;
+    /*private Vector<String> Names,Links,Prices;
     private Vector<String> flipkart, amazon, shopclues, snapdeal, ebay;
     String query;
     public Crawler(String Query){
@@ -18,9 +18,9 @@ public class Crawler {
         Names = new Vector<>();
         Links = new Vector<>();
         Prices = new Vector<>();
-        /*Names.add(query);
+        *//*Names.add(query);
         Prices.add(query);
-        Links.add(query);*/
+        Links.add(query);*//*
     }
 
     public void Crawl() throws InterruptedException {
@@ -156,5 +156,5 @@ public class Crawler {
     public Vector<String> GetPrices(){
         return Prices;
     }
-
+*/
 }

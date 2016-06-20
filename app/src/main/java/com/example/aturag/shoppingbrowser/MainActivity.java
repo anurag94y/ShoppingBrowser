@@ -33,9 +33,14 @@ import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.Toast;
 
+
 import java.util.HashMap;
+import java.util.List;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import Crawler.Crawler;
+import Crawler.GetFirstLinkFromGoogle;
 
 public class MainActivity extends FragmentActivity {
 
@@ -87,28 +92,15 @@ public class MainActivity extends FragmentActivity {
             }
         });
 
-
-        OpenUrl("http://www.google.com");
+       /* OpenUrl("https://www.google.com/search?q="+ "Sony+xperia+l+amazon");*/
+        Parse_Uri("Canon EOS 1300D 18MP Digital SLR Camera (Black) with 18-55mm ISII Lens, 16GB Card and Carry Case");
         mEdittext.setOnEditorActionListener(new EditText.OnEditorActionListener() {
             @Override
             public boolean onEditorAction(TextView tv, int actionId, KeyEvent event) {
                 if (actionId == EditorInfo.IME_ACTION_DONE || actionId == KeyEvent.KEYCODE_ENTER) {
                     InputMethodManager imm = (InputMethodManager)getSystemService(INPUT_METHOD_SERVICE);
                     imm.hideSoftInputFromWindow(mEdittext.getWindowToken(), 0);
-                    OpenUrl((String.valueOf(mEdittext.getText())));
-                    final Crawler crawler = new Crawler(String.valueOf(mEdittext.getText()));
-                    new AsyncTask<Void, Void, Void>() {
-                        @Override
-                        protected Void doInBackground(Void... params) {
-                            try {
-                                crawler.Crawl();
-                            } catch (InterruptedException e) {
-                                e.printStackTrace();
-                            }
-                            return null;
-                        }
-                    }.execute();
-                    return true;
+                    Parse_Uri(String.valueOf(mEdittext.getText()));
                 }
                 // If it wasn't the Back key or there's no web page history, bubble up to the default
                 // system behavior (probably exit the activity)
@@ -119,7 +111,7 @@ public class MainActivity extends FragmentActivity {
 
     private void refreshButtonLisener() {
         if(imageStat == 1) {
-            OpenUrl(Parse_Uri(String.valueOf(mEdittext.getText())));
+            Parse_Uri(String.valueOf(mEdittext.getText()));
         }
         else {
             mWebView.stopLoading();
@@ -128,9 +120,31 @@ public class MainActivity extends FragmentActivity {
         }
     }
 
-    private String Parse_Uri(String Url) { // Input Can be http/https :// google.com or www.google.com or google
+    private void Parse_Uri(String Url) { // Input Can be http/https :// google.com or www.google.com or google
 
-        int http_idx = Url.indexOf("http:");
+        String regex = "^(?:[a-z]+:)?//";
+        Pattern pattern = Pattern.compile(regex);
+        Matcher matcher = pattern.matcher(Url);
+        if(matcher.matches()) {
+            OpenUrl(Url);
+        }
+        else {
+            final String TrimmedUrl = Url.trim().replaceAll(" +", "+");
+            System.out.println();
+            OpenUrl("https://www.google.com/search?q=" + TrimmedUrl);
+            final String queryUrl= "https://www.google.com/search?q=" + TrimmedUrl;
+            final GetFirstLinkFromGoogle crawler = new GetFirstLinkFromGoogle();
+            new AsyncTask<Void, Void, Void>() {
+                String var = "";
+                @Override
+                protected Void doInBackground(Void... params) {
+                    crawler.getAllEcommerceUrl(queryUrl);
+                    return null;
+                }
+            }.execute();
+        }
+
+        /*int http_idx = Url.indexOf("http:");
         int https_idx = Url.indexOf("https:");
         String Prefix_path = "";
         String Suffix_path = "";
@@ -157,10 +171,10 @@ public class MainActivity extends FragmentActivity {
             }
         }
 
-        return Prefix_path + Url + Suffix_path; // Output Can be http/https :// www.google.com or google.com
+        return Prefix_path + Url + Suffix_path;*/ // Output Can be http/https :// www.google.com or google.com
     }
 
-    private void OpenUrl(String url) {
+    public void OpenUrl(String url) {
         mWebView.setWebChromeClient(new WebChromeClient() {
             public void onProgressChanged(WebView view, int progress) {
                 if(progress < 100 && mProgressBar.getVisibility() == ProgressBar.GONE){
@@ -179,11 +193,9 @@ public class MainActivity extends FragmentActivity {
         });
 
         this.mWebView.resumeTimers();
-        this.mWebView.getSettings().setJavaScriptEnabled(true);
         this.mWebView.addJavascriptInterface(new WebAppInterface(this), "Android");
         this.mWebView.setWebViewClient(new mWebViewClient());
         this.mWebView.setDownloadListener(new mDownloadListener());
-
         WebSettings webSettings = mWebView.getSettings();
         webSettings.setJavaScriptEnabled(true);
         mWebView.loadUrl(url);
@@ -251,6 +263,7 @@ public class MainActivity extends FragmentActivity {
             if (isMarketUrl && isHttpUrl) {
                 url = MainActivity._replaceHttpWithMarketUrl(url);
             }
+
             if (!isMarketUrl && isHttpUrl) {
                 return false;
             }
@@ -333,8 +346,10 @@ public class MainActivity extends FragmentActivity {
 
     protected void onDestroy() {
         super.onDestroy();
-        this.mWebView.destroy();
-        this.mWebView = null;
+       // webViewPlaceholder.removeView(mWebView);
+        mWebView.removeAllViews();
+        mWebView.destroy();
     }
+
 
 }

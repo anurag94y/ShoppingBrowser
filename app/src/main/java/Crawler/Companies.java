@@ -4,16 +4,14 @@ package Crawler;
  * Created by Flame Alchemist on 11/8/2015.
  */
 
-import org.jsoup.Jsoup;
-import org.jsoup.nodes.Document;
-import org.jsoup.nodes.Element;
+
 
 import java.io.IOException;
 import java.net.SocketTimeoutException;
 import java.net.UnknownHostException;
 
 public class Companies {
-    private String query;
+    /*private String query;
     Companies(String in ) {
         query = in;
     }
@@ -333,5 +331,5 @@ public class Companies {
             }
         }
     }
-
+*/
 }

@@ -43,4 +43,8 @@ dependencies {
     compile 'com.android.support:support-v13:23.4.0'
     // https://mvnrepository.com/artifact/org.jsoup/jsoup
     compile group: 'org.jsoup', name: 'jsoup', version: '1.7.2'
+   // compile 'org.seleniumhq.selenium:selenium-java:2.46.0'
+    /*// https://mvnrepository.com/artifact/org.seleniumhq.selenium/selenium-java
+    compile group: 'org.seleniumhq.selenium', name: 'selenium-java', version: '2.41.0'*/
+
 }
