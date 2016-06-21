@@ -116,13 +116,16 @@ public class ProductDetails {
         Paras_function(Url_path);
         System.out.println("-------------------------lock variable true ho gya ---------------");
         Element product_details = doc.select("div.comp-product-description").first();
+
+        System.out.println("---------------------product_details----------------\n"+ product_details);
+
         product_name = product_details.select("h1").first().text();
         product_price = product_details.select("span.payBlkBig").first().text();
     }
 
     private void Paras_function(final String Url) {
         try {
-            doc = Jsoup.connect(Url).get();
+            doc = Jsoup.connect(Url).userAgent("Mozilla/5.0 (Windows; U; WindowsNT 5.1; en-US;   rv1.8.1.6) Gecko/20070725 Firefox/2.0.0.6").get();
             System.out.println("doc doc " + Url + doc);
         } catch (Exception e) {
             System.out.println("Error in Snapdeal Doc !!!!" +  e.getMessage());
