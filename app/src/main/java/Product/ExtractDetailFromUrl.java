@@ -1,5 +1,6 @@
 package Product;
 
+import java.io.IOException;
 import java.util.HashMap;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -16,7 +17,7 @@ public class ExtractDetailFromUrl {
         ecommerceTagRegex.put("flipkart", "\\/p\\/itm");
         ecommerceTagRegex.put("amazon", "\\/dp\\/");
         ecommerceTagRegex.put("snapdeal", "\\/product\\/");
-        ecommerceTagRegex.put("ebay", "\\/itm\\/");
+        ecommerceTagRegex.put("ebay", "\\/itm");
         ecommercePresent.put("flipkart", "1");
         ecommercePresent.put("amazon", "1");
         ecommercePresent.put("snapdeal", "1");
@@ -31,6 +32,13 @@ public class ExtractDetailFromUrl {
             Pattern pattern = Pattern.compile(ecommerceRegex);
             Matcher matcher = pattern.matcher(Url);
             if(matcher.find()) {
+                /*try {
+                    System.out.println(">>>>> Calling to Product Details");
+                    ProductDetails pd = new ProductDetails("http://www.snapdeal.com/product/micromax-32b4500mhd-81-cm-32/640439490139", "Snapdeal");
+                    //ProductDetails pb = new ProductDetails(Url, ecommerce);
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }*/
                 return true;
             }
         }

@@ -1,4 +1,4 @@
-package com.example.aturag.shoppingbrowser;
+package Product;
 import android.os.AsyncTask;
 
 import org.jsoup.*;
@@ -28,7 +28,7 @@ public class ProductDetails {
 
     //For Constructor input will be product's webpage link and company name
     // Output will be nothing :P we have functions for that
-    ProductDetails(String Url_path, String Company_Name) throws IOException{
+    public ProductDetails(String Url_path, String Company_Name) throws IOException{
         switch (Company_Name) {
             case "Flipkart":
                 Flipkart(Url_path);
@@ -114,62 +114,19 @@ public class ProductDetails {
         doc = null;
         lock_variable = false;
         Paras_function(Url_path);
-    }
-    public void SnapDealHelper(Document document) {
         System.out.println("-------------------------lock variable true ho gya ---------------");
-
-        Element product_details = document.select("div.comp-product-description").first();
-
+        Element product_details = doc.select("div.comp-product-description").first();
         product_name = product_details.select("h1").first().text();
         product_price = product_details.select("span.payBlkBig").first().text();
     }
 
-    private void Paras_function(final String url) {
-        new AsyncTask<Void,Void ,Void>() {
-            private Document document = null;
-            @Override
-            protected Void doInBackground(Void... params) {
-                int cnt = 30;
-                while(cnt-- > 0) {
-                    try {
-                        doc = Jsoup.connect(url).get();
-                        System.out.println("doc doc " + url + " " + doc);
-                    } catch (Exception e) {
-                        e.printStackTrace();
-                        System.out.println("doc error " + url + " " + e.getMessage());
-                    }
-                }
-                return null;
-            }
-
-            @Override
-            protected void onPostExecute(Void aVoid) {
-                System.out.print("-----------------------Bhodi kkkkkkk -----------------");
-                System.out.println("doc doc " + url + " " + doc);
-                SnapDealHelper(doc);
-                lock_variable = true;
-            }
-
-            @Override
-            protected void onPreExecute() {
-                super.onPreExecute();
-            }
-
-            @Override
-            protected void onProgressUpdate(Void... values) {
-                super.onProgressUpdate(values);
-            }
-
-            @Override
-            protected void onCancelled(Void aVoid) {
-                super.onCancelled(aVoid);
-            }
-
-            @Override
-            protected void onCancelled() {
-                super.onCancelled();
-            }
-        }.execute();
+    private void Paras_function(final String Url) {
+        try {
+            doc = Jsoup.connect(Url).get();
+            System.out.println("doc doc " + Url + doc);
+        } catch (Exception e) {
+            System.out.println("Error in Snapdeal Doc !!!!" +  e.getMessage());
+        }
     }
 
 }

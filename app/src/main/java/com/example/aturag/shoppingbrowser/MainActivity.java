@@ -7,7 +7,6 @@ import android.graphics.Bitmap;
 import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Handler;
-import android.provider.Settings;
 import android.support.v4.app.FragmentActivity;
 import android.support.v4.app.NavUtils;
 import android.support.v4.app.TaskStackBuilder;
@@ -33,13 +32,12 @@ import android.widget.TextView;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 
-import java.io.IOException;
-import java.util.concurrent.CountDownLatch;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import Crawler.GetFirstLinkFromGoogle;
 import Product.ExtractDetailFromUrl;
+import Product.ProductDetails;
 
 public class MainActivity extends FragmentActivity {
 
@@ -70,22 +68,52 @@ public class MainActivity extends FragmentActivity {
         final ActionBar actionBar = getActionBar();
         mViewPager = (ViewPager) findViewById(R.id.pager);
         mViewPager.setAdapter(mDemoCollectionPagerAdapter);*/
+        init();
+        new AsyncTask<Void, Void, Void>() {
+            @Override
+            protected Void doInBackground(Void... params) {
+                try {
+                    System.out.println("---------------------------andr aaya---------------------");
+                    ProductDetails pd = new ProductDetails("http://www.snapdeal.com/product/micromax-32b4500mhd-81-cm-32/640439490139", "Snapdeal");
+                    System.out.println("------------------------ Product name ---------------\n" + pd.getProductName());
+                    System.out.println("------------------------ Product price--------------\n" + pd.getProductPrice());
+                } catch(Exception e) {
+                    e.printStackTrace();
+                }
+                return null;
+            }
+        }.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR);
+    }
 
+    private void init() {
         mWebView = (WebView) findViewById(R.id.webView);
         mProgressBar = (ProgressBar) findViewById(R.id.progressBar);
         mProgressBar.setVisibility(View.GONE);
         mEdittext = (EditText) findViewById(R.id.editText);
         refresh = (ImageView) findViewById(R.id.refresh);
         settings = (ImageView) findViewById(R.id.settings);
-
-        mEdittext.setSelectAllOnFocus(true);
-
-        imageStat = 1;
         refresh.setImageResource(R.drawable.icon_refresh);
         settings.setImageResource(R.drawable.icon_setting);
 
 
-
+        mEdittext.setSelectAllOnFocus(true);
+        imageStat = 1;
+        mWebView.setWebChromeClient(new WebChromeClient() {
+            public void onProgressChanged(WebView view, int progress) {
+                webViewStatus(progress);
+            }
+        });
+        this.mWebView.resumeTimers();
+        this.mWebView.addJavascriptInterface(new MyJavaScriptInterface(this), "Android");
+        this.mWebView.setWebViewClient(new mWebViewClient());
+        this.mWebView.setDownloadListener(new mDownloadListener());
+        WebSettings webSettings = mWebView.getSettings();
+        webSettings.setJavaScriptEnabled(true);
+        webSettings.setDomStorageEnabled(true);
+        webSettings.setAllowFileAccess(true);
+        mWebView.getSettings().setLightTouchEnabled(true);
+        webSettings.setJavaScriptCanOpenWindowsAutomatically(true);
+        mWebView.requestFocus();
         refresh.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -93,9 +121,7 @@ public class MainActivity extends FragmentActivity {
             }
         });
 
-        OpenUrl(Parse_Uri("Sony xperia l amazon"));
-        Paras_function("http://www.amazon.in/Canon-EOS-1300D-Digital-18-55mm/dp/B01D4EYNUG");
-        //OpenUrl("http://www.amazon.in/Canon-EOS-1300D-Digital-18-55mm/dp/B01D4EYNUG");
+        OpenUrl(("http://www.amazon.in/Canon-EOS-1300D-Digital-18-55mm/dp/B01D4EYNUG"));
         mEdittext.setOnEditorActionListener(new EditText.OnEditorActionListener() {
             @Override
             public boolean onEditorAction(TextView tv, int actionId, KeyEvent event) {
@@ -107,19 +133,41 @@ public class MainActivity extends FragmentActivity {
                     OpenUrl(Parse_Uri(String.valueOf(mEdittext.getText())));
                     return true;
                 }
-                // If it wasn't the Back key or there's no web page history, bubble up to the default
-                // system behavior (probably exit the activity)
                 return false;
             }
         });
+    }
 
-        try {
-            System.out.println("---------------------------andr aaya---------------------");
-            ProductDetails pd = new ProductDetails("http://www.snapdeal.com/product/micromax-32b4500mhd-81-cm-32/640439490139", "Snapdeal");
-            System.out.println("------------------------ Product name ---------------\n" + pd.getProductName());
-            System.out.println("------------------------ Product price--------------\n" + pd.getProductPrice());
-        } catch(Exception e) {
-            e.printStackTrace();
+    public void webViewStatus(int progress) {
+        if(progress < 100 && mProgressBar.getVisibility() == ProgressBar.GONE){
+            imageStat = 2;
+            refresh.setImageResource(R.drawable.icon_cancel);
+            mProgressBar.setVisibility(ProgressBar.VISIBLE);
+        }
+        mProgressBar.setProgress(progress);
+        if(progress == 100) {
+            imageStat = 1;
+            final String Url = mWebView.getOriginalUrl();
+            mEdittext.setText(Url);
+            try {
+                new AsyncTask<Void,Void, Void>() {
+                    @Override
+                    protected Void doInBackground(Void... params) {
+                        ExtractDetailFromUrl extractDetailFromUrl = new ExtractDetailFromUrl();
+                        if(extractDetailFromUrl.isProductUrl(Url)) {
+                            System.out.println("!!!! Yes It is product Url My Bro How U identify that !!!!");
+                        }
+                        else {
+                            System.out.println("No it is not product Page");
+                        }
+                        return null;
+                    }
+                }.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR);
+            } catch (Exception e) {
+                System.out.println("Error !!! " + e.getMessage());
+            }
+            refresh.setImageResource(R.drawable.icon_refresh);
+            mProgressBar.setVisibility(ProgressBar.GONE);
         }
     }
 
@@ -134,22 +182,10 @@ public class MainActivity extends FragmentActivity {
         }
     }
 
-    private String Parse_Uri(String Url) { // Input Can be http/https :// google.com or www.google.com or google
-
+    private String Parse_Uri(final String Url) { // Input Can be http/https :// google.com or www.google.com or google
         String regex = "^(?:[a-z]+:)?//";
         Pattern pattern = Pattern.compile(regex);
         Matcher matcher = pattern.matcher(Url);
-        ExtractDetailFromUrl extractDetailFromUrl = new ExtractDetailFromUrl();
-        try {
-            if(extractDetailFromUrl.isProductUrl(Url)) {
-                System.out.println("!!!! Yes It is product Url My Bro How U identify that !!!!");
-            } else {
-                System.out.println("No it is not product Page");
-            }
-
-        } catch (Exception e) {
-            System.out.println("Error !!! " + e.getMessage());
-        }
         if(matcher.matches()) {
             return Url;
         }
@@ -165,86 +201,13 @@ public class MainActivity extends FragmentActivity {
                     return null;
                 }
             }.execute();
-            Paras_function("https://www.google.com/search?q=sony+xperia+l+amazon");
             return ("https://www.google.com/search?q=" + TrimmedUrl);
         }
     }
 
     public void OpenUrl(String url) {
-        mWebView.setWebChromeClient(new WebChromeClient() {
-            public void onProgressChanged(WebView view, int progress) {
-                if(progress < 100 && mProgressBar.getVisibility() == ProgressBar.GONE){
-                    imageStat = 2;
-                    refresh.setImageResource(R.drawable.icon_cancel);
-                    mProgressBar.setVisibility(ProgressBar.VISIBLE);
-                }
-                mProgressBar.setProgress(progress);
-                if(progress == 100) {
-                    imageStat = 1;
-                    refresh.setImageResource(R.drawable.icon_refresh);
-                    mProgressBar.setVisibility(ProgressBar.GONE);
-                }
-            }
-        });
-
-        this.mWebView.resumeTimers();
-        this.mWebView.addJavascriptInterface(new MyJavaScriptInterface(this), "Android");
-        this.mWebView.setWebViewClient(new mWebViewClient());
-        this.mWebView.setDownloadListener(new mDownloadListener());
-        WebSettings webSettings = mWebView.getSettings();
-        webSettings.setJavaScriptEnabled(true);
-        webSettings.setDomStorageEnabled(true);
-        webSettings.setAllowFileAccess(true);
-        mWebView.getSettings().setLightTouchEnabled(true);
-        webSettings.setJavaScriptCanOpenWindowsAutomatically(true);
         mWebView.loadUrl(url);
-        mWebView.requestFocus();
     }
-
-    private void Paras_function(final String url) {
-
-        new AsyncTask<Void,Void ,Void>() {
-            Document doc;
-            @Override
-            protected Void doInBackground(Void... params) {
-                try {
-                    System.out.println("Bhodi kkk");
-                    doc = Jsoup.connect(url).get();
-                } catch (Exception e) {
-                    e.printStackTrace();
-                    System.out.println("doc error " + url + " " +  e.getMessage());
-                }
-                return null;
-            }
-
-            @Override
-            protected void onPostExecute(Void aVoid) {
-                System.out.println("doc doc " + url + " " + doc);
-                System.out.println("-----------------------Bhodi kkkkkkk -----------------");
-            }
-
-            @Override
-            protected void onPreExecute() {
-                super.onPreExecute();
-            }
-
-            @Override
-            protected void onProgressUpdate(Void... values) {
-                super.onProgressUpdate(values);
-            }
-
-            @Override
-            protected void onCancelled(Void aVoid) {
-                super.onCancelled(aVoid);
-            }
-
-            @Override
-            protected void onCancelled() {
-                super.onCancelled();
-            }
-        }.execute();
-    }
-
 
 
     @Override
@@ -294,7 +257,6 @@ public class MainActivity extends FragmentActivity {
         }
 
         public boolean shouldOverrideUrlLoading(WebView view, String url) {
-            mEdittext.setText(url);
             return false;
            // return _handleRedirect(url);
         }
@@ -393,8 +355,13 @@ public class MainActivity extends FragmentActivity {
     protected void onDestroy() {
         super.onDestroy();
        // webViewPlaceholder.removeView(mWebView);
-        mWebView.removeAllViews();
-        mWebView.destroy();
+        try {
+            mWebView.removeAllViews();
+            mWebView.destroy();
+        }
+        catch (Exception e) {
+            System.out.println("Error in Destroy Webview " + e.getMessage());
+        }
     }
 
 
