@@ -52,6 +52,7 @@ public class MainActivity extends FragmentActivity {
     private ImageView refresh;
     private ImageView settings;
     private int imageStat;
+    private int count = 0;
 
     public MainActivity() {
         this._isFullScreenBanner = false;
@@ -64,11 +65,12 @@ public class MainActivity extends FragmentActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.object_fragment);
         enableCookies();
+        count = 0;
         /*mDemoCollectionPagerAdapter = new CollectionPagerAdapter(getSupportFragmentManager());
         final ActionBar actionBar = getActionBar();
         mViewPager = (ViewPager) findViewById(R.id.pager);
         mViewPager.setAdapter(mDemoCollectionPagerAdapter);*/
-        init();
+        init();/*
         new AsyncTask<Void, Void, Void>() {
             @Override
             protected Void doInBackground(Void... params) {
@@ -82,7 +84,7 @@ public class MainActivity extends FragmentActivity {
                 }
                 return null;
             }
-        }.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR);
+        }.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR);*/
     }
 
     private void init() {
@@ -146,25 +148,29 @@ public class MainActivity extends FragmentActivity {
         }
         mProgressBar.setProgress(progress);
         if(progress == 100) {
+            System.out.println("cout >>> " + count);
+            count++;
             imageStat = 1;
             final String Url = mWebView.getOriginalUrl();
             mEdittext.setText(Url);
-            try {
-                new AsyncTask<Void,Void, Void>() {
-                    @Override
-                    protected Void doInBackground(Void... params) {
-                        ExtractDetailFromUrl extractDetailFromUrl = new ExtractDetailFromUrl();
-                        if(extractDetailFromUrl.isProductUrl(Url)) {
-                            System.out.println("!!!! Yes It is product Url My Bro How U identify that !!!!");
+            if(count == 1) {
+                try {
+                    new AsyncTask<Void, Void, Void>() {
+                        @Override
+                        protected Void doInBackground(Void... params) {
+                            ExtractDetailFromUrl extractDetailFromUrl = new ExtractDetailFromUrl();
+                            if (extractDetailFromUrl.isProductUrl(Url)) {
+                                extractDetailFromUrl.isValidProduct(Url);
+                                System.out.println("!!!! Yes It is product Url My Bro How U identify that !!!!");
+                            } else {
+                                System.out.println("No it is not product Page");
+                            }
+                            return null;
                         }
-                        else {
-                            System.out.println("No it is not product Page");
-                        }
-                        return null;
-                    }
-                }.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR);
-            } catch (Exception e) {
-                System.out.println("Error !!! " + e.getMessage());
+                    }.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR);
+                } catch (Exception e) {
+                    System.out.println("Error !!! " + e.getMessage());
+                }
             }
             refresh.setImageResource(R.drawable.icon_refresh);
             mProgressBar.setVisibility(ProgressBar.GONE);
@@ -191,7 +197,7 @@ public class MainActivity extends FragmentActivity {
         }
         else {
             final String TrimmedUrl = Url.trim().replaceAll(" +", "+");
-            final String queryUrl= "https://www.google.com/search?q=" + TrimmedUrl;
+            /*final String queryUrl= "https://www.google.com/search?q=" + TrimmedUrl;
             final GetFirstLinkFromGoogle crawler = new GetFirstLinkFromGoogle();
             new AsyncTask<Void, Void, Void>() {
                 String var = "";
@@ -200,7 +206,7 @@ public class MainActivity extends FragmentActivity {
                     crawler.getAllEcommerceUrl(queryUrl);
                     return null;
                 }
-            }.execute();
+            }.execute();*/
             return ("https://www.google.com/search?q=" + TrimmedUrl);
         }
     }

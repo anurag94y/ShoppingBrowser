@@ -14,14 +14,18 @@ import java.lang.reflect.Array;
 import java.util.ArrayList;
 import java.util.List;
 
+import Product.ExtractDetailFromUrl;
+import Product.ProductDetails;
+
 /**
  * Created by Aturag on 20-Jun-16.
  */
 public class GetFirstLinkFromGoogle {
     public ArrayList<String> ecommerceUrl,ecommerceName,productTitle;
     public String[] ecommerce = {"amazon", "flipkart", "snapdeal", "shopclues", "ebay", "myntra", "voonik", "mrvoonik"};
-
+    private ExtractDetailFromUrl extractDetailFromUrl;
     public GetFirstLinkFromGoogle() {
+        extractDetailFromUrl = new ExtractDetailFromUrl();
         ecommerceUrl = new ArrayList<>();
         ecommerceName = new ArrayList<>();
         productTitle = new ArrayList<>();
@@ -35,8 +39,20 @@ public class GetFirstLinkFromGoogle {
 
         for(int i = 0; i < ecommerceUrl.size(); i++ ) {
             System.out.println("Url Url " + ecommerceUrl.get(i) + " " + ecommerceName.get(i) + " " + productTitle.get(i));
+            try {
+                System.out.println(">>>>> Calling to Product Details " + Url);
+                ProductDetails pd = new ProductDetails(ecommerceUrl.get(i), ecommerceName.get(i));
+                System.out.println(ecommerceName.get(i) + " abe kuch de toh shi " + pd.getProductPrice() + " " + pd.getProductName());
+             //   String productName = pd.getProductName();
+            }
+            catch (Exception e) {
+                System.out.println("Error in fetching price and name for " + ecommerceName.get(i) + " " + e.getMessage());
+                e.printStackTrace();
+            }
         }
+
     }
+
 
     public void crawlGoogle(String Url,String Ecommerce)  {
         ArrayList<String> linksfromGoogle = new ArrayList<>();
@@ -74,6 +90,7 @@ public class GetFirstLinkFromGoogle {
         }
         //System.out.println("answer answer !!! " + productPageLink(linksfromGoogle, "amazon"));
         int ans = productPageLink(linksfromGoogle, Ecommerce);
+        //System.out.println(Ecommerce + " " + ans);
         if(ans >= 0) {
             ecommerceUrl.add(linksfromGoogle.get(ans));
             ecommerceName.add(Ecommerce);
@@ -85,13 +102,14 @@ public class GetFirstLinkFromGoogle {
     public int productPageLink(ArrayList<String> links, String ECommerce) {
         String Url = null;
         for(int i = 0;i < links.size(); i++) {
+            int flag = 0;
             String pattern = "http://www." +ECommerce;
             String url = links.get(i);
             if(url.length() >= pattern.length()) {
                 String ans = url.substring(0, pattern.length());
                 //System.out.println(">>>> url " + pattern + " " + ans);
                 if(ans.equals(pattern)) {
-                    return i;
+                    flag = 1;
                 }
             }
             pattern = "https://www." +ECommerce;
@@ -99,8 +117,29 @@ public class GetFirstLinkFromGoogle {
                 String ans = url.substring(0, pattern.length() );
                 //System.out.println(">>>> url " + pattern + " " + ans);
                 if(ans.equals(pattern)) {
-                    return i;
+                    flag = 1;
                 }
+            }
+
+            pattern = "http://m." +ECommerce;
+            if(url.length() >= pattern.length()) {
+                String ans = url.substring(0, pattern.length() );
+                //System.out.println(">>>> url " + pattern + " " + ans);
+                if(ans.equals(pattern)) {
+                    flag = 1;
+                }
+            }
+
+            pattern = "https://m." +ECommerce;
+            if(url.length() >= pattern.length()) {
+                String ans = url.substring(0, pattern.length() );
+                //System.out.println(">>>> url " + pattern + " " + ans);
+                if(ans.equals(pattern)) {
+                    flag =1;
+                }
+            }
+            if(flag == 1 && extractDetailFromUrl.isProductUrl(url)) {
+                return i;
             }
 
         }
