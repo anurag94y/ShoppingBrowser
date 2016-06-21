@@ -1,6 +1,5 @@
 package com.example.aturag.shoppingbrowser;
 
-import android.app.ActionBar;
 import android.content.Context;
 import android.content.Intent;
 import android.content.pm.ResolveInfo;
@@ -14,15 +13,12 @@ import android.support.v4.app.TaskStackBuilder;
 import android.support.v4.view.ViewPager;
 import android.os.Bundle;
 import android.view.MenuItem;
-import android.text.Editable;
-import android.text.method.KeyListener;
 import android.view.KeyEvent;
 import android.view.View;
 import android.view.inputmethod.EditorInfo;
 import android.view.inputmethod.InputMethodManager;
 import android.webkit.CookieSyncManager;
 import android.webkit.DownloadListener;
-import android.webkit.JavascriptInterface;
 import android.webkit.WebChromeClient;
 import android.webkit.WebSettings;
 import android.webkit.WebView;
@@ -31,16 +27,18 @@ import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.ProgressBar;
 import android.widget.TextView;
-import android.widget.Toast;
 
 
-import java.util.HashMap;
-import java.util.List;
+import org.jsoup.Jsoup;
+import org.jsoup.nodes.Document;
+
+import java.io.IOException;
+import java.util.concurrent.CountDownLatch;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import Crawler.Crawler;
 import Crawler.GetFirstLinkFromGoogle;
+import Product.ExtractDetailFromUrl;
 
 public class MainActivity extends FragmentActivity {
 
@@ -85,6 +83,8 @@ public class MainActivity extends FragmentActivity {
         refresh.setImageResource(R.drawable.icon_refresh);
         settings.setImageResource(R.drawable.icon_setting);
 
+
+
         refresh.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -92,15 +92,17 @@ public class MainActivity extends FragmentActivity {
             }
         });
 
-       /* OpenUrl("https://www.google.com/search?q="+ "Sony+xperia+l+amazon");*/
-        Parse_Uri("Canon EOS 1300D 18MP Digital SLR Camera (Black) with 18-55mm ISII Lens, 16GB Card and Carry Case");
+        OpenUrl(Parse_Uri("Sony xperia l amazon"));
+        Paras_function("http://www.amazon.in/Canon-EOS-1300D-Digital-18-55mm/dp/B01D4EYNUG");
+        //OpenUrl("http://www.amazon.in/Canon-EOS-1300D-Digital-18-55mm/dp/B01D4EYNUG");
         mEdittext.setOnEditorActionListener(new EditText.OnEditorActionListener() {
             @Override
             public boolean onEditorAction(TextView tv, int actionId, KeyEvent event) {
                 if (actionId == EditorInfo.IME_ACTION_DONE || actionId == KeyEvent.KEYCODE_ENTER) {
                     InputMethodManager imm = (InputMethodManager)getSystemService(INPUT_METHOD_SERVICE);
                     imm.hideSoftInputFromWindow(mEdittext.getWindowToken(), 0);
-                    Parse_Uri(String.valueOf(mEdittext.getText()));
+                    String Url = Parse_Uri(String.valueOf(mEdittext.getText()));
+                    OpenUrl(Url);
                 }
                 // If it wasn't the Back key or there's no web page history, bubble up to the default
                 // system behavior (probably exit the activity)
@@ -111,7 +113,7 @@ public class MainActivity extends FragmentActivity {
 
     private void refreshButtonLisener() {
         if(imageStat == 1) {
-            Parse_Uri(String.valueOf(mEdittext.getText()));
+            OpenUrl(String.valueOf(mEdittext.getText()));
         }
         else {
             mWebView.stopLoading();
@@ -120,18 +122,27 @@ public class MainActivity extends FragmentActivity {
         }
     }
 
-    private void Parse_Uri(String Url) { // Input Can be http/https :// google.com or www.google.com or google
+    private String Parse_Uri(String Url) { // Input Can be http/https :// google.com or www.google.com or google
 
         String regex = "^(?:[a-z]+:)?//";
         Pattern pattern = Pattern.compile(regex);
         Matcher matcher = pattern.matcher(Url);
+        ExtractDetailFromUrl extractDetailFromUrl = new ExtractDetailFromUrl();
+        try {
+            if(extractDetailFromUrl.isProductUrl(Url)) {
+                System.out.println("!!!! Yes It is product Url My Bro How U identify that !!!!");
+            } else {
+                System.out.println("No it is not product Page");
+            }
+
+        } catch (Exception e) {
+            System.out.println("Error !!! " + e.getMessage());
+        }
         if(matcher.matches()) {
-            OpenUrl(Url);
+            return Url;
         }
         else {
             final String TrimmedUrl = Url.trim().replaceAll(" +", "+");
-            System.out.println();
-            OpenUrl("https://www.google.com/search?q=" + TrimmedUrl);
             final String queryUrl= "https://www.google.com/search?q=" + TrimmedUrl;
             final GetFirstLinkFromGoogle crawler = new GetFirstLinkFromGoogle();
             new AsyncTask<Void, Void, Void>() {
@@ -142,36 +153,9 @@ public class MainActivity extends FragmentActivity {
                     return null;
                 }
             }.execute();
+            Paras_function("https://www.google.com/search?q=sony+xperia+l+amazon");
+            return ("https://www.google.com/search?q=" + TrimmedUrl);
         }
-
-        /*int http_idx = Url.indexOf("http:");
-        int https_idx = Url.indexOf("https:");
-        String Prefix_path = "";
-        String Suffix_path = "";
-
-        if(http_idx == -1 && https_idx == -1) {
-            Prefix_path += "http://";
-        }
-
-        int www_idx = Url.indexOf("www.");
-        if(www_idx == -1) {
-            int dot_idx = Url.indexOf('.');
-            if(dot_idx == -1) {
-                Suffix_path = ".com";
-            }
-        } else {
-            int cnt_of_dots = 0;
-            for(int i = www_idx; i < Url.length(); ++i) {
-                if(Url.charAt(i) == '.') {
-                    cnt_of_dots += 1;
-                }
-            }
-            if(cnt_of_dots <= 1) {
-                Suffix_path = ".com";
-            }
-        }
-
-        return Prefix_path + Url + Suffix_path;*/ // Output Can be http/https :// www.google.com or google.com
     }
 
     public void OpenUrl(String url) {
@@ -182,7 +166,6 @@ public class MainActivity extends FragmentActivity {
                     refresh.setImageResource(R.drawable.icon_cancel);
                     mProgressBar.setVisibility(ProgressBar.VISIBLE);
                 }
-                System.out.println(">>>> " + progress);
                 mProgressBar.setProgress(progress);
                 if(progress == 100) {
                     imageStat = 1;
@@ -193,13 +176,63 @@ public class MainActivity extends FragmentActivity {
         });
 
         this.mWebView.resumeTimers();
-        this.mWebView.addJavascriptInterface(new WebAppInterface(this), "Android");
+        this.mWebView.addJavascriptInterface(new MyJavaScriptInterface(this), "Android");
         this.mWebView.setWebViewClient(new mWebViewClient());
         this.mWebView.setDownloadListener(new mDownloadListener());
         WebSettings webSettings = mWebView.getSettings();
         webSettings.setJavaScriptEnabled(true);
+        webSettings.setDomStorageEnabled(true);
+        webSettings.setAllowFileAccess(true);
+        mWebView.getSettings().setLightTouchEnabled(true);
+        webSettings.setJavaScriptCanOpenWindowsAutomatically(true);
         mWebView.loadUrl(url);
+        mWebView.requestFocus();
     }
+
+    private void Paras_function(final String url) {
+
+        new AsyncTask<Void,Void ,Void>() {
+            Document doc;
+            @Override
+            protected Void doInBackground(Void... params) {
+                try {
+                    System.out.println("Bhodi kkk");
+                    doc = Jsoup.connect(url).get();
+                } catch (Exception e) {
+                    e.printStackTrace();
+                    System.out.println("doc error " + url + " " +  e.getMessage());
+                }
+                return null;
+            }
+
+            @Override
+            protected void onPostExecute(Void aVoid) {
+                System.out.println("doc doc " + url + " " + doc);
+                System.out.println("-----------------------Bhodi kkkkkkk -----------------");
+            }
+
+            @Override
+            protected void onPreExecute() {
+                super.onPreExecute();
+            }
+
+            @Override
+            protected void onProgressUpdate(Void... values) {
+                super.onProgressUpdate(values);
+            }
+
+            @Override
+            protected void onCancelled(Void aVoid) {
+                super.onCancelled(aVoid);
+            }
+
+            @Override
+            protected void onCancelled() {
+                super.onCancelled();
+            }
+        }.execute();
+    }
+
 
 
     @Override
@@ -244,13 +277,14 @@ public class MainActivity extends FragmentActivity {
         }
 
         public void onPageStarted(WebView view, String url, Bitmap favicon) {
-            _handleRedirect(url);
+            //_handleRedirect(url);
             super.onPageStarted(view, url, favicon);
         }
 
         public boolean shouldOverrideUrlLoading(WebView view, String url) {
             mEdittext.setText(url);
-            return _handleRedirect(url);
+            return false;
+           // return _handleRedirect(url);
         }
 
         private boolean _handleRedirect(String url) {
@@ -269,8 +303,8 @@ public class MainActivity extends FragmentActivity {
             }
             Intent intent = new Intent("android.intent.action.VIEW", Uri.parse(url));
             if (deviceCanHandleIntent(MainActivity.this, intent)) {
-                MainActivity.this.startActivity(intent);
-                MainActivity.this.finish();
+                //MainActivity.this.startActivity(intent);
+                //MainActivity.this.finish();
                 return true;
             } else if (!MainActivity.this._isFullScreenBanner) {
                 return false;
@@ -288,7 +322,7 @@ public class MainActivity extends FragmentActivity {
             Intent intent = new Intent("android.intent.action.VIEW", Uri.parse(url));
             ResolveInfo ri = MainActivity.this.getPackageManager().resolveActivity(intent, 0);
             if (ri != null) {
-                MainActivity.this.startActivity(intent);
+               //MainActivity.this.startActivity(intent);
             }
         }
     }

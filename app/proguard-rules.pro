@@ -15,3 +15,9 @@
 #-keepclassmembers class fqcn.of.javascript.interface.for.webview {
 #   public *;
 #}
+ -keep public class com.example.aturag.shoppingbrowser$MyJavaScriptInterface
+ -keep public class * implements com.example.aturag.shoppingbrowser$MyJavaScriptInterface
+ -keepclassmembers class com.mypackage.com.example.aturag.shoppingbrowser$MyJavaScriptInterface {
+     <methods>;
+     public *;
+ }

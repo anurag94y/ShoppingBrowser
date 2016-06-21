@@ -44,7 +44,7 @@ public class GetFirstLinkFromGoogle {
         Document doc = null;
         try {
             doc = Jsoup.connect(Url).get();
-        } catch (IOException e) {
+        } catch (Exception e) {
             e.printStackTrace();
         }
         Elements links = doc.select("a[href]");

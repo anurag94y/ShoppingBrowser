@@ -9,12 +9,12 @@ import java.util.HashMap;
 /**
  * Created by Aturag on 17-Jun-16.
  */
-public class WebAppInterface {
+public class MyJavaScriptInterface {
     Context mContext;
     MainActivity mainActivity;
 
     /** Instantiate the interface and set the context */
-    WebAppInterface(MainActivity c) {
+    MyJavaScriptInterface(MainActivity c) {
         mContext = c.getApplicationContext();
         mainActivity = c;
     }

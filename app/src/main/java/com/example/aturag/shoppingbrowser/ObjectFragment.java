@@ -110,7 +110,7 @@ public class ObjectFragment extends Fragment {
         WebSettings webSettings = mWebView.getSettings();
         webSettings.setJavaScriptEnabled(true);
         //webSettings.setBuiltInZoomControls(true);
-   //     mWebView.addJavascriptInterface(new WebAppInterface(context), "Android");
+   //     mWebView.addJavascriptInterface(new MyJavaScriptInterface(context), "Android");
         mWebView.loadUrl(url);
     }
 
