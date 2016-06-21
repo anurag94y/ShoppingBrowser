@@ -7,6 +7,7 @@ import android.content.pm.ResolveInfo;
 import android.graphics.Bitmap;
 import android.net.Uri;
 import android.os.Handler;
+import android.provider.Settings;
 import android.support.v4.app.FragmentActivity;
 import android.support.v4.app.NavUtils;
 import android.support.v4.app.TaskStackBuilder;
@@ -69,10 +70,10 @@ public class MainActivity extends FragmentActivity {
             @Override
             public boolean onEditorAction(TextView tv, int actionId, KeyEvent event) {
                 if (actionId == EditorInfo.IME_ACTION_DONE || actionId == KeyEvent.KEYCODE_ENTER) {
-                    InputMethodManager imm = (InputMethodManager)getSystemService(INPUT_METHOD_SERVICE);
+                    InputMethodManager imm = (InputMethodManager) getSystemService(INPUT_METHOD_SERVICE);
                     imm.hideSoftInputFromWindow(mEdittext.getWindowToken(), 0);
                     Uri url = Uri.parse(String.valueOf(mEdittext.getText()));
-                    System.out.println(">>>> url "+ url);
+                    System.out.println(">>>> url " + url);
                     OpenUrl(Parse_Uri(String.valueOf(mEdittext.getText())));
                     return true;
                 }
@@ -81,6 +82,15 @@ public class MainActivity extends FragmentActivity {
                 return false;
             }
         });
+
+        try {
+            System.out.println("---------------------------andr aaya---------------------");
+            ProductDetails pd = new ProductDetails("http://www.snapdeal.com/product/micromax-32b4500mhd-81-cm-32/640439490139", "Snapdeal");
+            System.out.println("------------------------ Product name ---------------\n" + pd.getProductName());
+            System.out.println("------------------------ Product price--------------\n" + pd.getProductPrice());
+        } catch(Exception e) {
+            e.printStackTrace();
+        }
     }
 
     private String Parse_Uri(String Url) { // Input Can be http/https :// google.com or www.google.com or google
