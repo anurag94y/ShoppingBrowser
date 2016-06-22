@@ -12,6 +12,9 @@ import android.support.v4.app.NavUtils;
 import android.support.v4.app.TaskStackBuilder;
 import android.support.v4.view.ViewPager;
 import android.os.Bundle;
+import android.support.v7.widget.DefaultItemAnimator;
+import android.support.v7.widget.LinearLayoutManager;
+import android.support.v7.widget.RecyclerView;
 import android.view.MenuItem;
 import android.view.KeyEvent;
 import android.view.View;
@@ -32,6 +35,7 @@ import android.widget.TextView;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 
+import java.util.ArrayList;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -51,12 +55,13 @@ public class MainActivity extends FragmentActivity {
     private Handler _handler;
     private ImageView refresh;
     private ImageView settings;
+    private static RecyclerView mRecyclerView;
     private int imageStat;
     private int count = 0;
 
     public MainActivity() {
-        this._isFullScreenBanner = false;
-        this._handler = new Handler();
+        //this._isFullScreenBanner = false;
+        //this._handler = new Handler();
     }
 
 
@@ -98,6 +103,21 @@ public class MainActivity extends FragmentActivity {
         settings.setImageResource(R.drawable.icon_setting);
 
 
+        mRecyclerView = (RecyclerView) findViewById(R.id.recycler_view);
+        LinearLayoutManager mLayoutManager = new LinearLayoutManager(getApplicationContext());
+        mLayoutManager.setOrientation(LinearLayoutManager.HORIZONTAL);
+        mRecyclerView.setLayoutManager(mLayoutManager);
+        mRecyclerView.setItemAnimator(new DefaultItemAnimator());
+        ArrayList<String> productName = new ArrayList<>();
+        ArrayList<String> productPrice = new ArrayList<>();
+
+        /*productName.add("Product Name !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!");
+        productPrice.add("Product Price");
+
+        ProductAdapter productAdapter = new ProductAdapter(productName, productPrice);
+        mRecyclerView.setAdapter(productAdapter);*/
+
+
         mEdittext.setSelectAllOnFocus(true);
         imageStat = 1;
         mWebView.setWebChromeClient(new WebChromeClient() {
@@ -123,7 +143,8 @@ public class MainActivity extends FragmentActivity {
             }
         });
 
-        OpenUrl(("http://www.amazon.in/Canon-EOS-1300D-Digital-18-55mm/dp/B01D4EYNUG"));
+        //OpenUrl(("http://www.amazon.in/Canon-EOS-1300D-Digital-18-55mm/dp/B01D4EYNUG"));
+        OpenUrl("http://www.snapdeal.com/product/micromax-32b4500mhd-81-cm-32/640439490139");
         mEdittext.setOnEditorActionListener(new EditText.OnEditorActionListener() {
             @Override
             public boolean onEditorAction(TextView tv, int actionId, KeyEvent event) {
@@ -307,6 +328,12 @@ public class MainActivity extends FragmentActivity {
         }
     }
 
+    public static void showProductList(ArrayList<String> productName, ArrayList<String> productPrice,
+                                       ArrayList<Integer> ecommerceIconForProduct) {
+        System.out.println("RecyclerView " + productName + " " + productPrice);
+        ProductAdapter productAdapter = new ProductAdapter(productName, productPrice, ecommerceIconForProduct);
+        mRecyclerView.setAdapter(productAdapter);
+    }
 
 
     private void enableCookies() {

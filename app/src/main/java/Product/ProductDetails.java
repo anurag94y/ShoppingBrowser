@@ -55,7 +55,7 @@ public class ProductDetails {
 
         Element product_deatils = doc.select("div.product-details").first();
 
-        System.out.println("---------------------product_details----------------\n" + product_deatils);
+        //System.out.println("---------------------product_details----------------\n" + product_deatils);
 
 
 
@@ -105,7 +105,7 @@ public class ProductDetails {
         System.out.println("-------------------------lock variable true ho gya ---------------");
         Element product_details = doc.select("div.comp-product-description").first();
 
-        System.out.println("---------------------product_details----------------\n"+ product_details);
+        //System.out.println("---------------------product_details----------------\n"+ product_details);
 
         product_name = product_details.select("h1").first().text();
         product_price = product_details.select("span.payBlkBig").first().text();
@@ -115,7 +115,7 @@ public class ProductDetails {
         try {
 
             doc = Jsoup.connect(Url).userAgent("Mozilla/5.0 (Macintosh; Intel Mac OS X 10_11_5) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/51.0.2704.84 Safari/537.36").get();
-            System.out.println("doc doc " + Url + doc);
+           // System.out.println("doc doc " + Url + doc);
         } catch (Exception e) {
             System.out.println("Error in Snapdeal Doc !!!!" +  e.getMessage());
         }

@@ -3,4 +3,7 @@
     <color name="colorPrimary">#3F51B5</color>
     <color name="colorPrimaryDark">#303F9F</color>
     <color name="colorAccent">#FF4081</color>
+    <color name="product_name">#999999</color>
+    <color name="product_price">#222222</color>
+    <color name="Recycler_bg">#999999</color>
 </resources>

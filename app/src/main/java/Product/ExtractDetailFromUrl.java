@@ -35,7 +35,7 @@ public class ExtractDetailFromUrl {
         if(isProductUrl(Url)) {
             try {
                 System.out.println(">>>>> Calling to Product Details " + Url);
-                ProductDetails pd = new ProductDetails("http://www.snapdeal.com/product/micromax-32b4500mhd-81-cm-32/640439490139", "snapdeal");
+                ProductDetails pd = new ProductDetails(Url, ecommerce);
                 String productName = pd.getProductName();
                 final String TrimmedUrl = productName.trim().replaceAll(" +", "+");
                 final String queryUrl = "https://www.google.com/search?q=" + TrimmedUrl;
@@ -50,8 +50,9 @@ public class ExtractDetailFromUrl {
                     }
                 }.execute();
                 //ProductDetails pb = new ProductDetails(Url, ecommerce);
-            } catch (IOException e) {
-                e.printStackTrace();
+            } catch (Exception e) {
+                System.out.println("Error in ExtractDetailFromUrl  " + e.getMessage() );
+                //e.printStackTrace();
             }
         }
     }
