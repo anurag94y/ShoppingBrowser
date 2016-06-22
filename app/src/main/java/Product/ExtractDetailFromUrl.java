@@ -40,7 +40,8 @@ public class ExtractDetailFromUrl {
                 final String TrimmedUrl = productName.trim().replaceAll(" +", "+");
                 final String queryUrl = "https://www.google.com/search?q=" + TrimmedUrl;
                 final GetFirstLinkFromGoogle crawler = new GetFirstLinkFromGoogle();
-                new AsyncTask<Void, Void, Void>() {
+                crawler.getAllEcommerceUrl(queryUrl);
+               /* new AsyncTask<Void, Void, Void>() {
                     String var = "";
 
                     @Override
@@ -48,7 +49,7 @@ public class ExtractDetailFromUrl {
                         crawler.getAllEcommerceUrl(queryUrl);
                         return null;
                     }
-                }.execute();
+                }.execute();*/
                 //ProductDetails pb = new ProductDetails(Url, ecommerce);
             } catch (Exception e) {
                 System.out.println("Error in ExtractDetailFromUrl  " + e.getMessage() );

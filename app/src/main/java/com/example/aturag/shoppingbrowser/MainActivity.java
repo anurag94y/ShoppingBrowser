@@ -42,6 +42,7 @@ import java.util.regex.Pattern;
 import Crawler.GetFirstLinkFromGoogle;
 import Product.ExtractDetailFromUrl;
 import Product.ProductDetails;
+import Product.ProductInfo;
 
 public class MainActivity extends FragmentActivity {
 
@@ -58,6 +59,8 @@ public class MainActivity extends FragmentActivity {
     private static RecyclerView mRecyclerView;
     private int imageStat;
     private int count = 0;
+    public ProductAdapter productAdapter;
+    public static ArrayList<ProductInfo> productInfoList = new ArrayList<>();
 
     public MainActivity() {
         //this._isFullScreenBanner = false;
@@ -108,14 +111,8 @@ public class MainActivity extends FragmentActivity {
         mLayoutManager.setOrientation(LinearLayoutManager.HORIZONTAL);
         mRecyclerView.setLayoutManager(mLayoutManager);
         mRecyclerView.setItemAnimator(new DefaultItemAnimator());
-        ArrayList<String> productName = new ArrayList<>();
-        ArrayList<String> productPrice = new ArrayList<>();
-
-        /*productName.add("Product Name !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!");
-        productPrice.add("Product Price");
-
-        ProductAdapter productAdapter = new ProductAdapter(productName, productPrice);
-        mRecyclerView.setAdapter(productAdapter);*/
+        productAdapter = new ProductAdapter(productInfoList);
+        mRecyclerView.setAdapter(productAdapter);
 
 
         mEdittext.setSelectAllOnFocus(true);
@@ -187,6 +184,13 @@ public class MainActivity extends FragmentActivity {
                                 System.out.println("No it is not product Page");
                             }
                             return null;
+                        }
+
+                        @Override
+                        protected void onPostExecute(Void aVoid) {
+                            super.onPostExecute(aVoid);
+                            productAdapter.setProductInfoList(productInfoList);
+                            productAdapter.notifyDataSetChanged();
                         }
                     }.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR);
                 } catch (Exception e) {
@@ -315,6 +319,15 @@ public class MainActivity extends FragmentActivity {
         }
     }
 
+    public void adapterchanged() {
+        productAdapter.notifyDataSetChanged();
+    }
+
+    public static void datachanged(ArrayList<ProductInfo> productInfolist) {
+        System.out.println("Data Change Call " +  productInfolist);
+        productInfoList = productInfolist;
+    }
+
     class mDownloadListener implements DownloadListener {
         mDownloadListener() {
         }
@@ -327,14 +340,6 @@ public class MainActivity extends FragmentActivity {
             }
         }
     }
-
-    public static void showProductList(ArrayList<String> productName, ArrayList<String> productPrice,
-                                       ArrayList<Integer> ecommerceIconForProduct) {
-        System.out.println("RecyclerView " + productName + " " + productPrice);
-        ProductAdapter productAdapter = new ProductAdapter(productName, productPrice, ecommerceIconForProduct);
-        mRecyclerView.setAdapter(productAdapter);
-    }
-
 
     private void enableCookies() {
         CookieSyncManager.createInstance(this);
