@@ -13,10 +13,9 @@ import java.io.IOException;
  * Created by paras on 6/20/16.
  */
 public class ProductDetails {
-    private String product_name;
-    private String product_price;
+    private String product_name = "";
+    private String product_price = "";
     private Document doc;
-    private boolean lock_variable;
 
     public String getProductName() {
         return product_name;
@@ -30,16 +29,16 @@ public class ProductDetails {
     // Output will be nothing :P we have functions for that
     public ProductDetails(String Url_path, String Company_Name) throws IOException{
         switch (Company_Name) {
-            case "Flipkart":
+            case "flipkart":
                 Flipkart(Url_path);
                 break;
-            case "Amazon":
+            case "amazon":
                 Amazon(Url_path);
                 break;
-            case "Ebay":
+            case "ebay":
                 Ebay(Url_path);
                 break;
-            case "Snapdeal":
+            case "snapdeal":
                 Snapdeal(Url_path);
                 break;
         }
@@ -50,16 +49,13 @@ public class ProductDetails {
         System.out.println("-------------------------Flipkart me aaya----------------------");
 
         doc = null;
-        lock_variable = false;
         Paras_function(Url_path);
-
-
         System.out.println("-------------------------lock variable true ho gya ---------------");
 
 
         Element product_deatils = doc.select("div.product-details").first();
 
-        System.out.println("---------------------product_details----------------\n" + product_deatils);
+        //System.out.println("---------------------product_details----------------\n" + product_deatils);
 
 
 
@@ -78,9 +74,7 @@ public class ProductDetails {
         System.out.println("-------------------------Amazon me aaya----------------------");
 
         doc = null;
-        lock_variable = false;
         Paras_function(Url_path);
-
 
         System.out.println("-------------------------lock variable true ho gya ---------------");
 
@@ -94,10 +88,7 @@ public class ProductDetails {
         System.out.println("-------------------------Ebay me aaya----------------------");
 
         doc = null;
-        lock_variable = false;
         Paras_function(Url_path);
-
-
         System.out.println("-------------------------lock variable true ho gya ---------------");
 
 
@@ -110,12 +101,11 @@ public class ProductDetails {
         System.out.println("-------------------------Snapdeal me aaya----------------------");
 
         doc = null;
-        lock_variable = false;
         Paras_function(Url_path);
         System.out.println("-------------------------lock variable true ho gya ---------------");
         Element product_details = doc.select("div.comp-product-description").first();
 
-        System.out.println("---------------------product_details----------------\n"+ product_details);
+        //System.out.println("---------------------product_details----------------\n"+ product_details);
 
         product_name = product_details.select("h1").first().text();
         product_price = product_details.select("span.payBlkBig").first().text();
@@ -123,11 +113,15 @@ public class ProductDetails {
 
     private void Paras_function(final String Url) {
         try {
+
             doc = Jsoup.connect(Url).userAgent("Mozilla/5.0 (Macintosh; Intel Mac OS X 10_11_5) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/51.0.2704.84 Safari/537.36").get();
-            System.out.println("doc doc " + Url + doc);
+           // System.out.println("doc doc " + Url + doc);
         } catch (Exception e) {
             System.out.println("Error in Snapdeal Doc !!!!" +  e.getMessage());
         }
     }
+
+
+
 
 }
