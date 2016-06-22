@@ -10,14 +10,15 @@ import android.widget.TextView;
 
 import java.util.ArrayList;
 
+import Product.ProductInfo;
+
 /**
  * Created by Aturag on 22-Jun-16.
  */
 public class ProductAdapter extends RecyclerView.Adapter<ProductAdapter.MyViewHolder> {
 
     private int[] ecommerceIcon = {R.drawable.amazon_icon, R.drawable.flipkat_icon, R.drawable.snapdeal_icon, R.drawable.ebay_icon};
-    private ArrayList<String> productName, productPrice;
-    private ArrayList<Integer> ecommerceIconForProduct;
+    private ArrayList<ProductInfo> productInfoList = new ArrayList<>();
     public class MyViewHolder extends RecyclerView.ViewHolder {
         public TextView product_Name, product_Price, genre;
         CardView cv;
@@ -32,11 +33,12 @@ public class ProductAdapter extends RecyclerView.Adapter<ProductAdapter.MyViewHo
         }
     }
 
+    public void setProductInfoList(ArrayList<ProductInfo> productInfoList) {
+        this.productInfoList = productInfoList;
+    }
 
-    public ProductAdapter(ArrayList<String> productName, ArrayList<String> productPrice, ArrayList<Integer> ecommerceIconForProduct) {
-        this.productName = productName;
-        this.productPrice = productPrice;
-        this.ecommerceIconForProduct = ecommerceIconForProduct;
+    public ProductAdapter(ArrayList<ProductInfo> productInfoList) {
+        this.productInfoList = productInfoList;
     }
 
     @Override
@@ -49,13 +51,14 @@ public class ProductAdapter extends RecyclerView.Adapter<ProductAdapter.MyViewHo
 
     @Override
     public void onBindViewHolder(MyViewHolder holder, int position) {
-        holder.product_Name.setText(productName.get(position));
-        holder.product_Price.setText(productPrice.get(position));
-        holder.ecommerce_Icon.setImageResource(ecommerceIcon[ecommerceIconForProduct.get(position)]);
+        ProductInfo productInfo = productInfoList.get(position);
+        holder.product_Name.setText(productInfo.getName());
+        holder.product_Price.setText("Price:" + productInfo.getPrice());
+        holder.ecommerce_Icon.setImageResource(ecommerceIcon[productInfo.ecommerceIcon]);
     }
 
     @Override
     public int getItemCount() {
-        return productPrice.size();
+        return productInfoList.size();
     }
 }

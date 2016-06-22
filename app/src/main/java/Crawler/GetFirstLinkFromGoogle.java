@@ -17,6 +17,7 @@ import java.util.List;
 
 import Product.ExtractDetailFromUrl;
 import Product.ProductDetails;
+import Product.ProductInfo;
 
 /**
  * Created by Aturag on 20-Jun-16.
@@ -35,9 +36,7 @@ public class GetFirstLinkFromGoogle {
     }
 
     public void getAllEcommerceUrl(String Url) {
-        ArrayList<String> productName = new ArrayList<>();
-        ArrayList<String> productPrice = new ArrayList<>();
-        ArrayList<Integer> ecommerceIconForProduct = new ArrayList<>();
+        ArrayList<ProductInfo> productInfoList = new ArrayList<>();
         for(int i = 0; i < ecommerce.length; i++) {
             try {
                 String var = Url + "+" + ecommerce[i];
@@ -54,9 +53,13 @@ public class GetFirstLinkFromGoogle {
                 ProductDetails pd = new ProductDetails(ecommerceUrl.get(i), ecommerceName.get(i));
                 System.out.println(ecommerceName.get(i) + " abe kuch de toh shi " + pd.getProductPrice() + " " + pd.getProductName());
                 if(!pd.getProductName().equals("") && !pd.getProductPrice().equals("")) {
-                    productName.add(pd.getProductName());
-                    productPrice.add(pd.getProductPrice());
-                    ecommerceIconForProduct.add(productEcommerceIcon.get(i));
+                    ProductInfo productInfo = new ProductInfo();
+                    int ma = Math.max(pd.getProductName().length(), 30);
+                    productInfo.setName(pd.getProductName());
+                    productInfo.Name = productInfo.Name.substring(0, ma);
+                    productInfo.setPrice(pd.getProductPrice());
+                    productInfo.setEcommerceIcon(productEcommerceIcon.get(i));
+                    productInfoList.add(productInfo);
                 }
                 //   String productName = pd.getProductName();
             }
@@ -65,8 +68,9 @@ public class GetFirstLinkFromGoogle {
                 e.printStackTrace();
             }
         }
-        if(productName.size() > 0)
-            MainActivity.showProductList(productName, productPrice, ecommerceIconForProduct);
+        if(productInfoList.size() > 0) {
+            MainActivity.datachanged(productInfoList);
+        }
 
 
     }
