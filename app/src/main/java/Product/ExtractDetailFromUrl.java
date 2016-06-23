@@ -52,8 +52,8 @@ public class ExtractDetailFromUrl {
                 }.execute();*/
                 //ProductDetails pb = new ProductDetails(Url, ecommerce);
             } catch (Exception e) {
-                System.out.println("Error in ExtractDetailFromUrl  " + e.getMessage() );
-                //e.printStackTrace();
+                System.out.println("Error in ExtractDetailFromUrl  " + e.getMessage() + " " + Url  );
+                e.printStackTrace();
             }
         }
     }
@@ -61,12 +61,22 @@ public class ExtractDetailFromUrl {
 
     public boolean isProductUrl(String Url) {
         String ecommerce = findEcommerceName(Url);
+        System.out.println("EcommerceName ->" + ecommerce);
         if(!ecommerce.equals("")) {
             String ecommerceRegex = ecommerceTagRegex.get(ecommerce);
             Pattern pattern = Pattern.compile(ecommerceRegex);
             Matcher matcher = pattern.matcher(Url);
             if(matcher.find()) {
                 return true;
+            }
+            if(ecommerce.equals("amazon")) {
+                ecommerceRegex = "\\/gp\\/";
+                pattern = Pattern.compile(ecommerceRegex);
+                matcher = pattern.matcher(Url);
+                if(matcher.find()) {
+                    return true;
+                }
+
             }
         }
         //System.out.println("EcommerceName" + ecommerce);

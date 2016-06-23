@@ -54,11 +54,12 @@ public class GetFirstLinkFromGoogle {
                 System.out.println(ecommerceName.get(i) + " abe kuch de toh shi " + pd.getProductPrice() + " " + pd.getProductName());
                 if(!pd.getProductName().equals("") && !pd.getProductPrice().equals("")) {
                     ProductInfo productInfo = new ProductInfo();
-                    int ma = Math.max(pd.getProductName().length(), 30);
+                    int ma = Math.min(pd.getProductName().length(), 20);
                     productInfo.setName(pd.getProductName());
                     productInfo.Name = productInfo.Name.substring(0, ma);
                     productInfo.setPrice(pd.getProductPrice());
                     productInfo.setEcommerceIcon(productEcommerceIcon.get(i));
+                    productInfo.setUrl(ecommerceUrl.get(i));
                     productInfoList.add(productInfo);
                 }
                 //   String productName = pd.getProductName();

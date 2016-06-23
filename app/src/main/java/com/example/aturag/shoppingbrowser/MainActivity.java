@@ -6,6 +6,7 @@ import android.content.pm.ResolveInfo;
 import android.graphics.Bitmap;
 import android.net.Uri;
 import android.os.AsyncTask;
+import android.os.Build;
 import android.os.Handler;
 import android.support.v4.app.FragmentActivity;
 import android.support.v4.app.NavUtils;
@@ -35,6 +36,12 @@ import android.widget.TextView;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 
+import java.io.BufferedReader;
+import java.io.DataOutputStream;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.net.HttpURLConnection;
+import java.net.URL;
 import java.util.ArrayList;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -111,7 +118,7 @@ public class MainActivity extends FragmentActivity {
         mLayoutManager.setOrientation(LinearLayoutManager.HORIZONTAL);
         mRecyclerView.setLayoutManager(mLayoutManager);
         mRecyclerView.setItemAnimator(new DefaultItemAnimator());
-        productAdapter = new ProductAdapter(productInfoList);
+        productAdapter = new ProductAdapter(productInfoList,mWebView);
         mRecyclerView.setAdapter(productAdapter);
 
 
@@ -130,9 +137,20 @@ public class MainActivity extends FragmentActivity {
         webSettings.setJavaScriptEnabled(true);
         webSettings.setDomStorageEnabled(true);
         webSettings.setAllowFileAccess(true);
+        //webSettings.setUserAgentString("Mozilla/5.0 (Macintosh; Intel Mac OS X 10_11_5) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/51.0.2704.84 Safari/537.36");
         mWebView.getSettings().setLightTouchEnabled(true);
         webSettings.setJavaScriptCanOpenWindowsAutomatically(true);
         mWebView.requestFocus();
+        mWebView.getSettings().setRenderPriority(WebSettings.RenderPriority.HIGH);
+        if (Build.VERSION.SDK_INT >= 19) {
+            // chromium, enable hardware acceleration
+            mWebView.setLayerType(View.LAYER_TYPE_HARDWARE, null);
+        } else {
+            // older android version, disable hardware acceleration
+            mWebView.setLayerType(View.LAYER_TYPE_SOFTWARE, null);
+        }
+        mWebView.getSettings().setCacheMode(WebSettings.LOAD_NO_CACHE);
+
         refresh.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -142,6 +160,7 @@ public class MainActivity extends FragmentActivity {
 
         //OpenUrl(("http://www.amazon.in/Canon-EOS-1300D-Digital-18-55mm/dp/B01D4EYNUG"));
         OpenUrl("http://www.snapdeal.com/product/micromax-32b4500mhd-81-cm-32/640439490139");
+        //OpenUrl("http://www.flipkart.com/samsung-galaxy-j7-6-new-2016-edition/p/itmegmrnggh56u22?pid=MOBEG4XWDK4WBGNU&lid=LSTMOBEG4XWDK4WBGNUD7TNFK");
         mEdittext.setOnEditorActionListener(new EditText.OnEditorActionListener() {
             @Override
             public boolean onEditorAction(TextView tv, int actionId, KeyEvent event) {
@@ -171,7 +190,7 @@ public class MainActivity extends FragmentActivity {
             imageStat = 1;
             final String Url = mWebView.getOriginalUrl();
             mEdittext.setText(Url);
-            if(count == 1) {
+            if(count >= 1) {
                 try {
                     new AsyncTask<Void, Void, Void>() {
                         @Override
@@ -401,6 +420,5 @@ public class MainActivity extends FragmentActivity {
             System.out.println("Error in Destroy Webview " + e.getMessage());
         }
     }
-
 
 }
