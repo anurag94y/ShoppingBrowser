@@ -13,7 +13,10 @@ import java.io.File;
 import java.io.IOException;
 import java.lang.reflect.Array;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import Product.ExtractDetailFromUrl;
 import Product.ProductDetails;
@@ -23,11 +26,17 @@ import Product.ProductInfo;
  * Created by Aturag on 20-Jun-16.
  */
 public class GetFirstLinkFromGoogle {
+    HashMap<String , String> ecommerceTagRegex = new HashMap<>();
+
     public ArrayList<String> ecommerceUrl,ecommerceName,productTitle;
     public ArrayList<Integer> productEcommerceIcon;
     public String[] ecommerce = {"amazon", "flipkart", "snapdeal", "ebay"};
     private ExtractDetailFromUrl extractDetailFromUrl;
     public GetFirstLinkFromGoogle() {
+        ecommerceTagRegex.put("flipkart", "\\/p\\/itm");
+        ecommerceTagRegex.put("amazon", "\\/dp\\/");
+        ecommerceTagRegex.put("snapdeal", "\\/product\\/");
+        ecommerceTagRegex.put("ebay", "\\/itm");
         extractDetailFromUrl = new ExtractDetailFromUrl();
         ecommerceUrl = new ArrayList<>();
         ecommerceName = new ArrayList<>();
@@ -35,8 +44,10 @@ public class GetFirstLinkFromGoogle {
         productEcommerceIcon = new ArrayList<>();
     }
 
-    public void getAllEcommerceUrl(String Url) {
+    public void getAllEcommerceUrl(String Url, int queryNumber) {
         ArrayList<ProductInfo> productInfoList = new ArrayList<>();
+        MainActivity.datachanged(productInfoList, queryNumber);
+        MainActivity._handler.sendEmptyMessage(1);
         for(int i = 0; i < ecommerce.length; i++) {
             try {
                 String var = Url + "+" + ecommerce[i];
@@ -61,6 +72,8 @@ public class GetFirstLinkFromGoogle {
                     productInfo.setEcommerceIcon(productEcommerceIcon.get(i));
                     productInfo.setUrl(ecommerceUrl.get(i));
                     productInfoList.add(productInfo);
+                    MainActivity.datachanged(productInfoList, queryNumber);
+                    MainActivity._handler.sendEmptyMessage(queryNumber);
                 }
                 //   String productName = pd.getProductName();
             }
@@ -69,9 +82,9 @@ public class GetFirstLinkFromGoogle {
                 e.printStackTrace();
             }
         }
-        if(productInfoList.size() > 0) {
+        /*if(productInfoList.size() > 0) {
             MainActivity.datachanged(productInfoList);
-        }
+        }*/
 
 
     }
@@ -123,47 +136,31 @@ public class GetFirstLinkFromGoogle {
     }
 
 
-    public int productPageLink(ArrayList<String> links, String ECommerce) {
-        String Url = null;
+    public int productPageLink(ArrayList<String> links, String Ecommerce) {
+
         for(int i = 0;i < links.size(); i++) {
             int flag = 0;
-            String pattern = "http://www." +ECommerce;
             String url = links.get(i);
-            if(url.length() >= pattern.length()) {
-                String ans = url.substring(0, pattern.length());
-                //System.out.println(">>>> url " + pattern + " " + ans);
-                if(ans.equals(pattern)) {
-                    flag = 1;
-                }
-            }
-            pattern = "https://www." +ECommerce;
-            if(url.length() >= pattern.length()) {
-                String ans = url.substring(0, pattern.length() );
-                //System.out.println(">>>> url " + pattern + " " + ans);
-                if(ans.equals(pattern)) {
-                    flag = 1;
-                }
-            }
+            Pattern pattern = Pattern.compile(Ecommerce);
+            Matcher matcher = pattern.matcher(url);
+            if(matcher.find()) {
+                if(!ecommerce.equals("")) {
+                    String ecommerceRegex = ecommerceTagRegex.get(Ecommerce);
+                    pattern = Pattern.compile(ecommerceRegex);
+                    matcher = pattern.matcher(url);
+                    if(matcher.find()) {
+                        return i;
+                    }
+                    if(ecommerce.equals("amazon")) {
+                        ecommerceRegex = "\\/gp\\/";
+                        pattern = Pattern.compile(ecommerceRegex);
+                        matcher = pattern.matcher(url);
+                        if(matcher.find()) {
+                            return i;
+                        }
 
-            pattern = "http://m." +ECommerce;
-            if(url.length() >= pattern.length()) {
-                String ans = url.substring(0, pattern.length() );
-                //System.out.println(">>>> url " + pattern + " " + ans);
-                if(ans.equals(pattern)) {
-                    flag = 1;
+                    }
                 }
-            }
-
-            pattern = "https://m." +ECommerce;
-            if(url.length() >= pattern.length()) {
-                String ans = url.substring(0, pattern.length() );
-                //System.out.println(">>>> url " + pattern + " " + ans);
-                if(ans.equals(pattern)) {
-                    flag =1;
-                }
-            }
-            if(flag == 1 && extractDetailFromUrl.isProductUrl(url)) {
-                return i;
             }
 
         }

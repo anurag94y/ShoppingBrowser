@@ -8,6 +8,8 @@ import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Build;
 import android.os.Handler;
+import android.os.Looper;
+import android.os.Message;
 import android.support.v4.app.FragmentActivity;
 import android.support.v4.app.NavUtils;
 import android.support.v4.app.TaskStackBuilder;
@@ -43,6 +45,9 @@ import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -60,13 +65,14 @@ public class MainActivity extends FragmentActivity {
     private EditText mEdittext;
     public static final int MIN_HTML_ALLOWED_LENGTH = 40;
     public static boolean _isFullScreenBanner;
-    private Handler _handler;
+    public static Handler _handler;
     private ImageView refresh;
     private ImageView settings;
     private static RecyclerView mRecyclerView;
     private int imageStat;
     private int count = 0;
     public ProductAdapter productAdapter;
+    public static int queryNumber = 1;
     public static ArrayList<ProductInfo> productInfoList = new ArrayList<>();
 
     public MainActivity() {
@@ -78,6 +84,14 @@ public class MainActivity extends FragmentActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        _handler = new Handler() {
+            @Override
+            public void handleMessage(Message msg) {
+                super.handleMessage(msg);
+                productAdapter.setProductInfoList(productInfoList);
+                productAdapter.notifyDataSetChanged();
+            }
+        };
         setContentView(R.layout.object_fragment);
         enableCookies();
         count = 0;
@@ -131,7 +145,7 @@ public class MainActivity extends FragmentActivity {
         });
         this.mWebView.resumeTimers();
         this.mWebView.addJavascriptInterface(new MyJavaScriptInterface(this), "Android");
-        this.mWebView.setWebViewClient(new mWebViewClient());
+        this.mWebView.setWebViewClient(new WebViewClient());
         this.mWebView.setDownloadListener(new mDownloadListener());
         WebSettings webSettings = mWebView.getSettings();
         webSettings.setJavaScriptEnabled(true);
@@ -176,7 +190,6 @@ public class MainActivity extends FragmentActivity {
             }
         });
     }
-
     public void webViewStatus(int progress) {
         if(progress < 100 && mProgressBar.getVisibility() == ProgressBar.GONE){
             imageStat = 2;
@@ -190,6 +203,7 @@ public class MainActivity extends FragmentActivity {
             imageStat = 1;
             final String Url = mWebView.getOriginalUrl();
             mEdittext.setText(Url);
+            queryNumber++;
             if(count >= 1) {
                 try {
                     new AsyncTask<Void, Void, Void>() {
@@ -197,7 +211,7 @@ public class MainActivity extends FragmentActivity {
                         protected Void doInBackground(Void... params) {
                             ExtractDetailFromUrl extractDetailFromUrl = new ExtractDetailFromUrl();
                             if (extractDetailFromUrl.isProductUrl(Url)) {
-                                extractDetailFromUrl.isValidProduct(Url);
+                                extractDetailFromUrl.isValidProduct(Url, queryNumber);
                                 System.out.println("!!!! Yes It is product Url My Bro How U identify that !!!!");
                             } else {
                                 System.out.println("No it is not product Page");
@@ -208,7 +222,7 @@ public class MainActivity extends FragmentActivity {
                         @Override
                         protected void onPostExecute(Void aVoid) {
                             super.onPostExecute(aVoid);
-                            productAdapter.setProductInfoList(productInfoList);
+                            //productAdapter.setProductInfoList(productInfoList);
                             productAdapter.notifyDataSetChanged();
                         }
                     }.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR);
@@ -297,54 +311,17 @@ public class MainActivity extends FragmentActivity {
     }
 
 
-    class mWebViewClient extends WebViewClient {
-        mWebViewClient() {
-        }
-
-        public void onPageStarted(WebView view, String url, Bitmap favicon) {
-            //_handleRedirect(url);
-            super.onPageStarted(view, url, favicon);
-        }
-
-        public boolean shouldOverrideUrlLoading(WebView view, String url) {
-            return false;
-           // return _handleRedirect(url);
-        }
-
-        private boolean _handleRedirect(String url) {
-            MainActivity.this._handler.removeCallbacksAndMessages(null);
-            if (url == null) {
-                return false;
-            }
-            boolean isHttpUrl = MainActivity._isHttpUrl(url);
-            boolean isMarketUrl = MainActivity._isMarketUrl(url);
-            if (isMarketUrl && isHttpUrl) {
-                url = MainActivity._replaceHttpWithMarketUrl(url);
-            }
-
-            if (!isMarketUrl && isHttpUrl) {
-                return false;
-            }
-            Intent intent = new Intent("android.intent.action.VIEW", Uri.parse(url));
-            if (deviceCanHandleIntent(MainActivity.this, intent)) {
-                //MainActivity.this.startActivity(intent);
-                //MainActivity.this.finish();
-                return true;
-            } else if (!MainActivity.this._isFullScreenBanner) {
-                return false;
-            } else {
-                return false;
-            }
-        }
-    }
 
     public void adapterchanged() {
         productAdapter.notifyDataSetChanged();
     }
 
-    public static void datachanged(ArrayList<ProductInfo> productInfolist) {
-        System.out.println("Data Change Call " +  productInfolist);
-        productInfoList = productInfolist;
+
+    public static void datachanged(ArrayList<ProductInfo> productInfolist, int query) {
+        if(query == queryNumber) {
+            System.out.println("Data Change Call " + productInfolist);
+            productInfoList = productInfolist;
+        }
     }
 
     class mDownloadListener implements DownloadListener {

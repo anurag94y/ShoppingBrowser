@@ -30,7 +30,7 @@ public class ExtractDetailFromUrl {
         ecommercePresent.put("ebay", "1");
     }
 
-    public void isValidProduct(String Url) {
+    public void isValidProduct(String Url, int queryNumber) {
         String ecommerce = findEcommerceName(Url);
         if(isProductUrl(Url)) {
             try {
@@ -40,7 +40,7 @@ public class ExtractDetailFromUrl {
                 final String TrimmedUrl = productName.trim().replaceAll(" +", "+");
                 final String queryUrl = "https://www.google.com/search?q=" + TrimmedUrl;
                 final GetFirstLinkFromGoogle crawler = new GetFirstLinkFromGoogle();
-                crawler.getAllEcommerceUrl(queryUrl);
+                crawler.getAllEcommerceUrl(queryUrl, queryNumber);
                /* new AsyncTask<Void, Void, Void>() {
                     String var = "";
 
