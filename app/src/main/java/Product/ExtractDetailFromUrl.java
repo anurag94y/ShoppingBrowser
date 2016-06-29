@@ -39,6 +39,7 @@ public class ExtractDetailFromUrl {
                 String productName = pd.getProductName();
                 final String TrimmedUrl = productName.trim().replaceAll(" +", "+");
                 final String queryUrl = "https://www.google.com/search?q=" + TrimmedUrl;
+                System.out.println("!!!!!!!!!! Product name " +  productName + "!!!!!!!!!!!!!!!!!!!!!!!!");
                 final GetFirstLinkFromGoogle crawler = new GetFirstLinkFromGoogle();
                 crawler.getAllEcommerceUrl(queryUrl, queryNumber);
                /* new AsyncTask<Void, Void, Void>() {

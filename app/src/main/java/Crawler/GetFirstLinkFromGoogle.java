@@ -99,39 +99,54 @@ public class GetFirstLinkFromGoogle {
         } catch (Exception e) {
             e.printStackTrace();
         }
-        Elements links = doc.select("a[href]");
-        Elements media = doc.select("[src]");
-        Elements imports = doc.select("link[href]");
 
-       /* print("\nMedia: (%d)", media.size());
-        for (Element src : media) {
-            if (src.tagName().equals("img"))
-                print(" * %s: <%s> %sx%s (%s)",
-                        src.tagName(), src.attr("abs:src"), src.attr("width"), src.attr("height"),
-                        trim(src.attr("alt"), 20));
-            else
-                print(" * %s: <%s>", src.tagName(), src.attr("abs:src"));
-        }
+        String productUrl = doc.select("div.rc").first().select("a[href]").attr("abs:href");
 
-        print("\nImports: (%d)", imports.size());
-        for (Element link : imports) {
-            print(" * %s <%s> (%s)", link.tagName(),link.attr("abs:href"), link.attr("rel"));
-        }
-*/
-        print("\nLinks: (%d)", links.size());
-        for (Element link : links) {
-            linksfromGoogle.add(link.attr("abs:href"));
-            textfromGoogle.add(link.text().trim());
-            //print(" * a: <%s>  (%s)", link.attr("abs:href"), trim(link.text(), 35));
-        }
-        //System.out.println("answer answer !!! " + productPageLink(linksfromGoogle, "amazon"));
-        int ans = productPageLink(linksfromGoogle, Ecommerce);
-        //System.out.println(Ecommerce + " " + ans);
-        if(ans >= 0) {
-            ecommerceUrl.add(linksfromGoogle.get(ans));
+        if(extractDetailFromUrl.isProductUrl(productUrl)) {
+            ecommerceUrl.add(productUrl);
             ecommerceName.add(Ecommerce);
             productEcommerceIcon.add(index);
-            productTitle.add(textfromGoogle.get(ans));
+            productTitle.add(doc.select("div.rc").first().select("a[href]").text());
+        } else {
+            Elements links = doc.select("a[href]");
+            Elements media = doc.select("[src]");
+            Elements imports = doc.select("link[href]");
+
+           /* print("\nMedia: (%d)", media.size());
+            for (Element src : media) {
+                if (src.tagName().equals("img"))
+                    print(" * %s: <%s> %sx%s (%s)",
+                            src.tagName(), src.attr("abs:src"), src.attr("width"), src.attr("height"),
+                            trim(src.attr("alt"), 20));
+                else
+                    print(" * %s: <%s>", src.tagName(), src.attr("abs:src"));
+            }
+    01:10:25.857
+            print("\nImports: (%d)", imports.size());
+            for (Element link : imports) {
+                print(" * %s <%s> (%s)", link.tagName(),link.attr("abs:href"), link.attr("rel"));
+            }
+
+    */
+            System.out.println(doc.select("div.rc").first().select("a[href]"));
+            print("\nLinks: (%d)", links.size());
+            for (Element link : links) {
+                if (link.attr("abs:href").contains(Ecommerce)) {
+                    linksfromGoogle.add(link.attr("abs:href"));
+                    textfromGoogle.add(link.text().trim());
+                }
+                //print(" * a: <%s>  (%s)", link.attr("abs:href"), trim(link.text(), 35));
+            }
+            System.out.println(linksfromGoogle.size());
+            //System.out.println("answer answer !!! " + productPageLink(linksfromGoogle, "amazon"));
+            int ans = productPageLink(linksfromGoogle, Ecommerce);
+            //System.out.println(Ecommerce + " " + ans);
+            if (ans >= 0) {
+                ecommerceUrl.add(linksfromGoogle.get(ans));
+                ecommerceName.add(Ecommerce);
+                productEcommerceIcon.add(index);
+                productTitle.add(textfromGoogle.get(ans));
+            }
         }
     }
 
