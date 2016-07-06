@@ -1,12 +1,15 @@
 package com.example.aturag.shoppingbrowser;
-
+import android.app.ActionBar;
+import android.app.SearchManager;
 import android.content.Context;
 import android.content.Intent;
 import android.content.pm.ResolveInfo;
-import android.graphics.Bitmap;
+import android.graphics.drawable.ColorDrawable;
 import android.net.Uri;
 import android.os.AsyncTask;
+import android.os.Build;
 import android.os.Handler;
+import android.os.Message;
 import android.support.v4.app.FragmentActivity;
 import android.support.v4.app.NavUtils;
 import android.support.v4.app.TaskStackBuilder;
@@ -15,6 +18,9 @@ import android.os.Bundle;
 import android.support.v7.widget.DefaultItemAnimator;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
+import android.util.Pair;
+import android.view.Menu;
+import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.KeyEvent;
 import android.view.View;
@@ -26,40 +32,53 @@ import android.webkit.WebChromeClient;
 import android.webkit.WebSettings;
 import android.webkit.WebView;
 import android.webkit.WebViewClient;
+import android.widget.AdapterView;
 import android.widget.EditText;
 import android.widget.ImageView;
+import android.widget.LinearLayout;
+import android.widget.ListView;
 import android.widget.ProgressBar;
+import android.widget.SearchView;
 import android.widget.TextView;
+import android.widget.Toast;
 
-
-import org.jsoup.Jsoup;
-import org.jsoup.nodes.Document;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import Crawler.GetFirstLinkFromGoogle;
+import Product.DatabaseTable;
 import Product.ExtractDetailFromUrl;
-import Product.ProductDetails;
 import Product.ProductInfo;
+import ConnectToServer.*;
 
 public class MainActivity extends FragmentActivity {
 
+    //for Search View
+    private ListView urlListView;
+    private SearchView searchView = null;
+    private MenuItem searchMenuItem;
+    private SearchAdapter searchAdapter;
+    private ArrayList<String> friendList;
+    DatabaseTable db = new DatabaseTable(this);
+    boolean searchStatus = true;
+
+
+    private HashMap<Integer, Integer> queryMap = new HashMap<>();
     private CollectionPagerAdapter mDemoCollectionPagerAdapter;
     private  ViewPager mViewPager;
     private WebView mWebView;
     private ProgressBar mProgressBar;
-    private EditText mEdittext;
     public static final int MIN_HTML_ALLOWED_LENGTH = 40;
     public static boolean _isFullScreenBanner;
-    private Handler _handler;
-    private ImageView refresh;
-    private ImageView settings;
+    public static Handler _handler;
     private static RecyclerView mRecyclerView;
     private int imageStat;
     private int count = 0;
     public ProductAdapter productAdapter;
+    public static int queryNumber = 1;
+    private MenuItem refreshMenuItem = null;
     public static ArrayList<ProductInfo> productInfoList = new ArrayList<>();
 
     public MainActivity() {
@@ -67,55 +86,46 @@ public class MainActivity extends FragmentActivity {
         //this._handler = new Handler();
     }
 
-
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.object_fragment);
+        _handler = new Handler() {
+            @Override
+            public void handleMessage(Message msg) {
+                super.handleMessage(msg);
+                System.out.println(" in handler " + productInfoList);
+                productAdapter.setProductInfoList(productInfoList);
+                productAdapter.notifyDataSetChanged();
+            }
+        };
+        setContentView(R.layout.main_activity);
         enableCookies();
         count = 0;
         /*mDemoCollectionPagerAdapter = new CollectionPagerAdapter(getSupportFragmentManager());
         final ActionBar actionBar = getActionBar();
         mViewPager = (ViewPager) findViewById(R.id.pager);
         mViewPager.setAdapter(mDemoCollectionPagerAdapter);*/
-        init();/*
-        new AsyncTask<Void, Void, Void>() {
-            @Override
-            protected Void doInBackground(Void... params) {
-                try {
-                    System.out.println("---------------------------andr aaya---------------------");
-                    ProductDetails pd = new ProductDetails("http://www.snapdeal.com/product/micromax-32b4500mhd-81-cm-32/640439490139", "Snapdeal");
-                    System.out.println("------------------------ Product name ---------------\n" + pd.getProductName());
-                    System.out.println("------------------------ Product price--------------\n" + pd.getProductPrice());
-                } catch(Exception e) {
-                    e.printStackTrace();
-                }
-                return null;
-            }
-        }.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR);*/
+        init();
+        new ServletAsyncTask().execute(new Pair<Context, String>(this, "https://www.google.com/search?q=anurag+yadav"));
     }
 
     private void init() {
         mWebView = (WebView) findViewById(R.id.webView);
         mProgressBar = (ProgressBar) findViewById(R.id.progressBar);
         mProgressBar.setVisibility(View.GONE);
-        mEdittext = (EditText) findViewById(R.id.editText);
-        refresh = (ImageView) findViewById(R.id.refresh);
-        settings = (ImageView) findViewById(R.id.settings);
-        refresh.setImageResource(R.drawable.icon_refresh);
-        settings.setImageResource(R.drawable.icon_setting);
 
+        ActionBar actionBar = getActionBar();
+        //actionBar.setDisplayHomeAsUpEnabled(true);
+        actionBar.setDisplayShowTitleEnabled(false);
+        getActionBar().setIcon(new ColorDrawable(getResources().getColor(android.R.color.transparent)));
 
         mRecyclerView = (RecyclerView) findViewById(R.id.recycler_view);
         LinearLayoutManager mLayoutManager = new LinearLayoutManager(getApplicationContext());
         mLayoutManager.setOrientation(LinearLayoutManager.HORIZONTAL);
         mRecyclerView.setLayoutManager(mLayoutManager);
         mRecyclerView.setItemAnimator(new DefaultItemAnimator());
-        productAdapter = new ProductAdapter(productInfoList);
+        productAdapter = new ProductAdapter(productInfoList,mWebView);
         mRecyclerView.setAdapter(productAdapter);
-
-
-        mEdittext.setSelectAllOnFocus(true);
         imageStat = 1;
         mWebView.setWebChromeClient(new WebChromeClient() {
             public void onProgressChanged(WebView view, int progress) {
@@ -130,55 +140,67 @@ public class MainActivity extends FragmentActivity {
         webSettings.setJavaScriptEnabled(true);
         webSettings.setDomStorageEnabled(true);
         webSettings.setAllowFileAccess(true);
+        //webSettings.setUserAgentString("Mozilla/5.0 (Macintosh; Intel Mac OS X 10_11_5) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/51.0.2704.84 Safari/537.36");
         mWebView.getSettings().setLightTouchEnabled(true);
         webSettings.setJavaScriptCanOpenWindowsAutomatically(true);
         mWebView.requestFocus();
-        refresh.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                refreshButtonLisener();
-            }
-        });
+        mWebView.getSettings().setRenderPriority(WebSettings.RenderPriority.HIGH);
+        if (Build.VERSION.SDK_INT >= 19) {
+            // chromium, enable hardware acceleration
+            mWebView.setLayerType(View.LAYER_TYPE_HARDWARE, null);
+        } else {
+            // older android version, disable hardware acceleration
+            mWebView.setLayerType(View.LAYER_TYPE_SOFTWARE, null);
+        }
+        mWebView.getSettings().setCacheMode(WebSettings.LOAD_NO_CACHE);
+
 
         //OpenUrl(("http://www.amazon.in/Canon-EOS-1300D-Digital-18-55mm/dp/B01D4EYNUG"));
         OpenUrl("http://www.snapdeal.com/product/micromax-32b4500mhd-81-cm-32/640439490139");
-        mEdittext.setOnEditorActionListener(new EditText.OnEditorActionListener() {
-            @Override
-            public boolean onEditorAction(TextView tv, int actionId, KeyEvent event) {
-                if (actionId == EditorInfo.IME_ACTION_DONE || actionId == KeyEvent.KEYCODE_ENTER) {
-                    InputMethodManager imm = (InputMethodManager) getSystemService(INPUT_METHOD_SERVICE);
-                    imm.hideSoftInputFromWindow(mEdittext.getWindowToken(), 0);
-                    Uri url = Uri.parse(String.valueOf(mEdittext.getText()));
-                    System.out.println(">>>> url " + url);
-                    OpenUrl(Parse_Uri(String.valueOf(mEdittext.getText())));
-                    return true;
-                }
-                return false;
-            }
-        });
+        //OpenUrl("http://www.flipkart.com/samsung-galaxy-j7-6-new-2016-edition/p/itmegmrnggh56u22?pid=MOBEG4XWDK4WBGNU&lid=LSTMOBEG4XWDK4WBGNUD7TNFK");
+    }
+
+    @Override
+    public boolean onPrepareOptionsMenu(Menu menu) {
+        if(searchView != null)
+            searchView.requestFocus();
+        return super.onPrepareOptionsMenu(menu);
     }
 
     public void webViewStatus(int progress) {
         if(progress < 100 && mProgressBar.getVisibility() == ProgressBar.GONE){
+            if(!queryMap.containsKey(queryNumber)) {
+                queryMap.put(queryNumber, 1);
+                productInfoList = new ArrayList<>();
+                productAdapter.setProductInfoList(productInfoList);
+                productAdapter.notifyDataSetChanged();
+            }
             imageStat = 2;
-            refresh.setImageResource(R.drawable.icon_cancel);
+            if(refreshMenuItem != null) {
+                refreshMenuItem.setIcon(R.drawable.icon_cancel);
+            }
+            final String Url = mWebView.getOriginalUrl();
+            if(searchView != null)
+                searchView.setQuery(Url, false);
             mProgressBar.setVisibility(ProgressBar.VISIBLE);
         }
         mProgressBar.setProgress(progress);
         if(progress == 100) {
             System.out.println("cout >>> " + count);
+            callForComparePriceList(mWebView.getUrl());
             count++;
             imageStat = 1;
             final String Url = mWebView.getOriginalUrl();
-            mEdittext.setText(Url);
-            if(count == 1) {
-                try {
+            if(searchView != null)
+                searchView.setQuery(Url, false);
+            if(count >= 1) {
+                /*try {
                     new AsyncTask<Void, Void, Void>() {
                         @Override
                         protected Void doInBackground(Void... params) {
                             ExtractDetailFromUrl extractDetailFromUrl = new ExtractDetailFromUrl();
                             if (extractDetailFromUrl.isProductUrl(Url)) {
-                                extractDetailFromUrl.isValidProduct(Url);
+                                extractDetailFromUrl.isValidProduct(Url, queryNumber);
                                 System.out.println("!!!! Yes It is product Url My Bro How U identify that !!!!");
                             } else {
                                 System.out.println("No it is not product Page");
@@ -189,27 +211,78 @@ public class MainActivity extends FragmentActivity {
                         @Override
                         protected void onPostExecute(Void aVoid) {
                             super.onPostExecute(aVoid);
-                            productAdapter.setProductInfoList(productInfoList);
+                            //productAdapter.setProductInfoList(productInfoList);
                             productAdapter.notifyDataSetChanged();
                         }
                     }.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR);
                 } catch (Exception e) {
                     System.out.println("Error !!! " + e.getMessage());
-                }
+                }*/
             }
-            refresh.setImageResource(R.drawable.icon_refresh);
+            if(refreshMenuItem != null) {
+                refreshMenuItem.setIcon(R.drawable.icon_refresh);
+            }
             mProgressBar.setVisibility(ProgressBar.GONE);
         }
     }
 
+
+
     private void refreshButtonLisener() {
         if(imageStat == 1) {
-            OpenUrl(String.valueOf(mEdittext.getText()));
+            OpenUrl(String.valueOf(searchView.getQuery()));
         }
         else {
             mWebView.stopLoading();
             imageStat = 1;
-            refresh.setImageResource(R.drawable.icon_refresh);
+            if(refreshMenuItem != null) {
+                refreshMenuItem.setIcon(R.drawable.icon_refresh);
+            }
+        }
+    }
+
+    public class mWebViewClient extends WebViewClient {
+        @Override
+        public boolean shouldOverrideUrlLoading(WebView view, String url) {
+            //callForComparePriceList(url);
+            return super.shouldOverrideUrlLoading(view, url);
+        }
+    }
+
+    private void callForComparePriceList(String url) {
+        final String Url = url;
+        productInfoList.clear();
+        productAdapter.notifyDataSetChanged();
+        System.out.println("!!!!!!!!!!!!!!!!!!!!!" + url + "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!");
+        try {
+            new AsyncTask<Void, Void, Void>() {
+                @Override
+                protected Void doInBackground(Void... params) {
+                    try {
+                        ExtractDetailFromUrl extractDetailFromUrl = new ExtractDetailFromUrl();
+                        if (extractDetailFromUrl.isProductUrl(Url)) {
+                            extractDetailFromUrl.isValidProduct(Url, queryNumber);
+                            System.out.println("!!!! Yes It is product Url My Bro How U identify that !!!!");
+                        } else {
+                            System.out.println("No it is not product Page");
+                        }
+                    } catch (Exception e) {
+                        //System.out.println(e.getMessage());
+                    }
+                    return null;
+                }
+
+                @Override
+                protected void onPostExecute(Void aVoid) {
+                    super.onPostExecute(aVoid);
+                    //productAdapter.setProductInfoList(productInfoList);
+                    productAdapter.notifyDataSetChanged();
+                    queryNumber++;
+
+                }
+            }.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR);
+        } catch (Exception e) {
+            System.out.println("Error !!! " + e.getMessage());
         }
     }
 
@@ -245,11 +318,59 @@ public class MainActivity extends FragmentActivity {
     public void onBackPressed() {
         if(mWebView.canGoBack()) {
             mWebView.goBack();
+            //callForComparePriceList(mWebView.);
         }
         else {
             super.onBackPressed();
         }
     }
+
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        MenuInflater menuInflater = getMenuInflater();
+        menuInflater.inflate(R.layout.menu, menu);
+
+        //searchMenuItem = menu.findItem(R.id.action_search);
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.HONEYCOMB) {
+            SearchManager searchManager = (SearchManager) getSystemService(Context.SEARCH_SERVICE);
+            //searchView = (SearchView) menu.findItem(R.id.action_search).getActionView();
+            searchView = new SearchView(getActionBar().getThemedContext());
+            int magId = getResources().getIdentifier("android:id/search_mag_icon", null, null);
+            ImageView magImage = (ImageView) searchView.findViewById(magId);
+            magImage.setLayoutParams(new LinearLayout.LayoutParams(0, 0));
+            searchView.setIconifiedByDefault(false);
+            getActionBar().setCustomView(searchView);
+            getActionBar().setDisplayShowCustomEnabled(true);
+            //ComponentName cn = new ComponentName(this, SearchAdapter.class);
+            searchView.setSearchableInfo(searchManager.getSearchableInfo(getComponentName()));
+            searchView.setIconifiedByDefault(false);
+            getActionBar().setCustomView(searchView);
+            getActionBar().setDisplayShowCustomEnabled(true);
+            searchView.setOnQueryTextListener(new SearchView.OnQueryTextListener() {
+                @Override
+                public boolean onQueryTextSubmit(String query) {
+                    OpenUrl(Parse_Uri(query));
+                    return true;
+                }
+
+                @Override
+                public boolean onQueryTextChange(String newText) {
+                    //initUrlList();
+                    //Cursor c = db.getWordMatches(newText, null);
+                    //searchAdapter.getFilter().filter(newText);
+                    return true;
+                }
+            });
+          //  searchView.setIconifiedByDefault(false);
+        }
+
+        refreshMenuItem = menu.findItem(R.id.action_refresh);
+        //refreshButtonLisener();
+        return super.onCreateOptionsMenu(menu);
+    }
+
+
+
 
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
@@ -273,59 +394,56 @@ public class MainActivity extends FragmentActivity {
                     NavUtils.navigateUpTo(this, upIntent);
                 }
                 return true;
+            case R.id.action_refresh:
+                refreshButtonLisener();
+                return true;
+
+            /*case R.id.action_search:
+                System.out.println("!!!!!!!!! submit button start working !!!!!!");
+                onSearchRequested();
+                return true;*/
+
+            case R.id.menu_forward:
+                if(mWebView.canGoForward()) {
+                    mWebView.goForward();
+                    //callForComparePriceList(mWebView.getUrl());
+                }
+                return true;
+
+            case R.id.menu_bookmark:
+                // Single menu item is selected do something
+                // Ex: launching new activity/screen or show alert message
+                Toast.makeText(MainActivity.this, "Bookmark is Selected", Toast.LENGTH_SHORT).show();
+                return true;
+
+            case R.id.menu_save:
+                Toast.makeText(MainActivity.this, "Save is Selected", Toast.LENGTH_SHORT).show();
+                return true;
+
+            case R.id.menu_share:
+                Toast.makeText(MainActivity.this, "Share is Selected", Toast.LENGTH_SHORT).show();
+                return true;
+
+            case R.id.menu_delete:
+                Toast.makeText(MainActivity.this, "Delete is Selected", Toast.LENGTH_SHORT).show();
+                return true;
+
+            case R.id.menu_preferences:
+                Toast.makeText(MainActivity.this, "Preferences is Selected", Toast.LENGTH_SHORT).show();
+                return true;
         }
+
+
         return super.onOptionsItemSelected(item);
     }
 
 
-    class mWebViewClient extends WebViewClient {
-        mWebViewClient() {
+    public static void datachanged(ArrayList<ProductInfo> productInfolist, int query) {
+        System.out.println("!!!!!!!! query" + query + " " + queryNumber);
+        if(query == queryNumber) {
+            System.out.println("Data Change Call " + productInfolist);
+            productInfoList = productInfolist;
         }
-
-        public void onPageStarted(WebView view, String url, Bitmap favicon) {
-            //_handleRedirect(url);
-            super.onPageStarted(view, url, favicon);
-        }
-
-        public boolean shouldOverrideUrlLoading(WebView view, String url) {
-            return false;
-           // return _handleRedirect(url);
-        }
-
-        private boolean _handleRedirect(String url) {
-            MainActivity.this._handler.removeCallbacksAndMessages(null);
-            if (url == null) {
-                return false;
-            }
-            boolean isHttpUrl = MainActivity._isHttpUrl(url);
-            boolean isMarketUrl = MainActivity._isMarketUrl(url);
-            if (isMarketUrl && isHttpUrl) {
-                url = MainActivity._replaceHttpWithMarketUrl(url);
-            }
-
-            if (!isMarketUrl && isHttpUrl) {
-                return false;
-            }
-            Intent intent = new Intent("android.intent.action.VIEW", Uri.parse(url));
-            if (deviceCanHandleIntent(MainActivity.this, intent)) {
-                //MainActivity.this.startActivity(intent);
-                //MainActivity.this.finish();
-                return true;
-            } else if (!MainActivity.this._isFullScreenBanner) {
-                return false;
-            } else {
-                return false;
-            }
-        }
-    }
-
-    public void adapterchanged() {
-        productAdapter.notifyDataSetChanged();
-    }
-
-    public static void datachanged(ArrayList<ProductInfo> productInfolist) {
-        System.out.println("Data Change Call " +  productInfolist);
-        productInfoList = productInfolist;
     }
 
     class mDownloadListener implements DownloadListener {
@@ -402,5 +520,40 @@ public class MainActivity extends FragmentActivity {
         }
     }
 
+    private void initUrlList() {
+        friendList = new ArrayList<>();
+        //intialize friendList
+        urlListView = (ListView) findViewById(R.id.search_listView);
+        searchAdapter = new SearchAdapter(this, friendList);
+
+        // add header and footer for list
+        urlListView.setAdapter(searchAdapter);
+        urlListView.setTextFilterEnabled(false);
+
+        // use to enable search view popup text
+        //friendListView.setTextFilterEnabled(true);
+
+        // set up click listener
+        urlListView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+            @Override
+            public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+                if(position>0 && position <= friendList.size()) {
+                    handelListItemClick((String)searchAdapter.getItem(position - 1));
+                }
+            }
+        });
+    }
+
+
+    private void handelListItemClick(String url) {
+        // close search view if its visible
+        System.out.println("Item Click Running");
+        if (searchView!= null && searchMenuItem != null) {
+            searchMenuItem.collapseActionView();
+            searchView.setQuery(url, false);
+            OpenUrl(url);
+        }
+
+    }
 
 }

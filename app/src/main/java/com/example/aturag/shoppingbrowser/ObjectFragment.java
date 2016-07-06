@@ -1,12 +1,9 @@
 package com.example.aturag.shoppingbrowser;
 
 import android.content.Context;
-import android.content.Intent;
-import android.graphics.Bitmap;
 import android.net.Uri;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
-import android.support.v4.app.NotificationCompat;
 import android.view.KeyEvent;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -31,19 +28,19 @@ public class ObjectFragment extends Fragment {
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
-        final View rootView = inflater.inflate(R.layout.object_fragment, container, false);
+        final View rootView = inflater.inflate(R.layout.main_activity, container, false);
         mWebView = (WebView) rootView.findViewById(R.id.webView);
         mProgressBar = (ProgressBar) rootView.findViewById(R.id.progressBar);
         mProgressBar.setVisibility(View.GONE);
-        final EditText mEdittext = (EditText) rootView.findViewById(R.id.editText);
-        OpenUrl("http://www.google.com");
+        /*final EditText mEdittext = (EditText) rootView.findViewById(R.id.editText);
+        */OpenUrl("http://www.google.com");
         context = rootView.getContext();
-        mEdittext.setOnEditorActionListener(new EditText.OnEditorActionListener() {
+       /* mEdittext.setOnEditorActionListener(new EditText.OnEditorActionListener() {
             @Override
             public boolean onEditorAction(TextView tv, int actionId, KeyEvent event) {
                 if (actionId == EditorInfo.IME_ACTION_DONE || actionId == KeyEvent.KEYCODE_ENTER) {
-                    /*InputMethodManager imm = (InputMethodManager)rootView.getSystemService(INPUT_METHOD_SERVICE);
-                    imm.hideSoftInputFromWindow(mEdittext.getWindowToken(), 0);*/
+                    *//*InputMethodManager imm = (InputMethodManager)rootView.getSystemService(INPUT_METHOD_SERVICE);
+                    imm.hideSoftInputFromWindow(mEdittext.getWindowToken(), 0);*//*
                     Uri url = Uri.parse(String.valueOf(mEdittext.getText()));
                     System.out.println(">>>> url "+ url);
                     OpenUrl(Parse_Uri(String.valueOf(mEdittext.getText())));
@@ -53,7 +50,7 @@ public class ObjectFragment extends Fragment {
                     // system behavior (probably exit the activity)
                 return false;
             }
-        });
+        });*/
 
         return rootView;
     }

@@ -1,25 +1,24 @@
-package Product;
-
-import android.os.AsyncTask;
+package com.example.Aturag.myapplication.backend.BackendLogic;
 
 import java.io.IOException;
-import java.util.Comparator;
+import java.net.HttpRetryException;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import Crawler.GetFirstLinkFromGoogle;
+import javax.servlet.http.HttpServletResponse;
 
 /**
  * Created by Aturag on 20-Jun-16.
  */
-public class ExtractDetailFromUrl {
+public class BackendExtractDetailFromUrl {
 
     HashMap<String , String> ecommerceTagRegex = new HashMap<>();
     HashMap<String , String> ecommercePresent = new HashMap<>();
     public String ComapnyName = "";
 
-    public ExtractDetailFromUrl() {
+    public BackendExtractDetailFromUrl() {
         ecommerceTagRegex.put("flipkart", "\\/p\\/itm");
         ecommerceTagRegex.put("amazon", "\\/dp\\/");
         ecommerceTagRegex.put("snapdeal", "\\/product\\/");
@@ -30,18 +29,18 @@ public class ExtractDetailFromUrl {
         ecommercePresent.put("ebay", "1");
     }
 
-    public void isValidProduct(String Url, int queryNumber) {
+    public ArrayList<BackendProductInfo> isValidProduct(String Url, int queryNumber, HttpServletResponse resp) throws IOException {
         String ecommerce = findEcommerceName(Url);
-        if(isProductUrl(Url)) {
+        if(isProductUrl(Url, resp)) {
             try {
-                System.out.println(">>>>> Calling to Product Details " + Url);
-                ProductDetails pd = new ProductDetails(Url, ecommerce);
+                resp.getWriter().println(">>>>> Calling to Product Details " + Url);
+                BackendProductDetails pd = new BackendProductDetails(Url, ecommerce, resp);
                 String productName = pd.getProductName();
                 final String TrimmedUrl = productName.trim().replaceAll(" +", "+");
                 final String queryUrl = "https://www.google.com/search?q=" + TrimmedUrl;
-                System.out.println("!!!!!!!!!! Product name " +  productName + "!!!!!!!!!!!!!!!!!!!!!!!!");
-                final GetFirstLinkFromGoogle crawler = new GetFirstLinkFromGoogle();
-                crawler.getAllEcommerceUrl(queryUrl, queryNumber);
+                resp.getWriter().println("!!!!!!!!!! Product name " +  productName + " " + pd.getProductPrice() +" !!!!!!!!!!!!!!!!!!!!!!!!");
+                final BackendGetFirstLinkFromGoogle crawler = new BackendGetFirstLinkFromGoogle();
+                return crawler.getAllEcommerceUrl(queryUrl, queryNumber,resp);
                /* new AsyncTask<Void, Void, Void>() {
                     String var = "";
 
@@ -51,18 +50,19 @@ public class ExtractDetailFromUrl {
                         return null;
                     }
                 }.execute();*/
-                //ProductDetails pb = new ProductDetails(Url, ecommerce);
+                //BackendProductDetails pb = new BackendProductDetails(Url, ecommerce);
             } catch (Exception e) {
-                System.out.println("Error in ExtractDetailFromUrl  " + e.getMessage() + " " + Url  );
-                e.printStackTrace();
+                resp.getWriter().println("Error in BackendExtractDetailFromUrl  " + e.getMessage() + " " + Url  );
+                //e.printStackTrace();
             }
         }
+        return new ArrayList<BackendProductInfo>();
     }
 
 
-    public boolean isProductUrl(String Url) {
+    public boolean isProductUrl(String Url, HttpServletResponse resp) throws IOException {
         String ecommerce = findEcommerceName(Url);
-        System.out.println("EcommerceName ->" + ecommerce);
+        resp.getWriter().println("EcommerceName ->" + ecommerce);
         if(!ecommerce.equals("")) {
             String ecommerceRegex = ecommerceTagRegex.get(ecommerce);
             Pattern pattern = Pattern.compile(ecommerceRegex);

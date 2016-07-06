@@ -13,7 +13,10 @@ import java.io.File;
 import java.io.IOException;
 import java.lang.reflect.Array;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import Product.ExtractDetailFromUrl;
 import Product.ProductDetails;
@@ -23,11 +26,17 @@ import Product.ProductInfo;
  * Created by Aturag on 20-Jun-16.
  */
 public class GetFirstLinkFromGoogle {
+    HashMap<String , String> ecommerceTagRegex = new HashMap<>();
+
     public ArrayList<String> ecommerceUrl,ecommerceName,productTitle;
     public ArrayList<Integer> productEcommerceIcon;
     public String[] ecommerce = {"amazon", "flipkart", "snapdeal", "ebay"};
     private ExtractDetailFromUrl extractDetailFromUrl;
     public GetFirstLinkFromGoogle() {
+        ecommerceTagRegex.put("flipkart", "\\/p\\/itm");
+        ecommerceTagRegex.put("amazon", "\\/dp\\/");
+        ecommerceTagRegex.put("snapdeal", "\\/product\\/");
+        ecommerceTagRegex.put("ebay", "\\/itm");
         extractDetailFromUrl = new ExtractDetailFromUrl();
         ecommerceUrl = new ArrayList<>();
         ecommerceName = new ArrayList<>();
@@ -35,8 +44,10 @@ public class GetFirstLinkFromGoogle {
         productEcommerceIcon = new ArrayList<>();
     }
 
-    public void getAllEcommerceUrl(String Url) {
+    public void getAllEcommerceUrl(String Url, int queryNumber) {
         ArrayList<ProductInfo> productInfoList = new ArrayList<>();
+        MainActivity.datachanged(productInfoList, queryNumber);
+        MainActivity._handler.sendEmptyMessage(1);
         for(int i = 0; i < ecommerce.length; i++) {
             try {
                 String var = Url + "+" + ecommerce[i];
@@ -54,12 +65,15 @@ public class GetFirstLinkFromGoogle {
                 System.out.println(ecommerceName.get(i) + " abe kuch de toh shi " + pd.getProductPrice() + " " + pd.getProductName());
                 if(!pd.getProductName().equals("") && !pd.getProductPrice().equals("")) {
                     ProductInfo productInfo = new ProductInfo();
-                    int ma = Math.max(pd.getProductName().length(), 30);
+                    int ma = Math.min(pd.getProductName().length(), 20);
                     productInfo.setName(pd.getProductName());
                     productInfo.Name = productInfo.Name.substring(0, ma);
                     productInfo.setPrice(pd.getProductPrice());
                     productInfo.setEcommerceIcon(productEcommerceIcon.get(i));
+                    productInfo.setUrl(ecommerceUrl.get(i));
                     productInfoList.add(productInfo);
+                    MainActivity.datachanged(productInfoList, queryNumber);
+                    MainActivity._handler.sendEmptyMessage(queryNumber);
                 }
                 //   String productName = pd.getProductName();
             }
@@ -68,9 +82,9 @@ public class GetFirstLinkFromGoogle {
                 e.printStackTrace();
             }
         }
-        if(productInfoList.size() > 0) {
+        /*if(productInfoList.size() > 0) {
             MainActivity.datachanged(productInfoList);
-        }
+        }*/
 
 
     }
@@ -81,88 +95,87 @@ public class GetFirstLinkFromGoogle {
         ArrayList<String> textfromGoogle = new ArrayList<>();
         Document doc = null;
         try {
-            doc = Jsoup.connect(Url).get();
+            doc = Jsoup.connect(Url).userAgent("Mozilla/5.0 (Windows NT 6.3; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/51.0.2704.103 Safari/537.36").get();
         } catch (Exception e) {
             e.printStackTrace();
         }
-        Elements links = doc.select("a[href]");
-        Elements media = doc.select("[src]");
-        Elements imports = doc.select("link[href]");
 
-       /* print("\nMedia: (%d)", media.size());
-        for (Element src : media) {
-            if (src.tagName().equals("img"))
-                print(" * %s: <%s> %sx%s (%s)",
-                        src.tagName(), src.attr("abs:src"), src.attr("width"), src.attr("height"),
-                        trim(src.attr("alt"), 20));
-            else
-                print(" * %s: <%s>", src.tagName(), src.attr("abs:src"));
-        }
+        String productUrl = doc.select("div.rc").first().select("a[href]").attr("abs:href");
 
-        print("\nImports: (%d)", imports.size());
-        for (Element link : imports) {
-            print(" * %s <%s> (%s)", link.tagName(),link.attr("abs:href"), link.attr("rel"));
-        }
-*/
-        print("\nLinks: (%d)", links.size());
-        for (Element link : links) {
-            linksfromGoogle.add(link.attr("abs:href"));
-            textfromGoogle.add(link.text().trim());
-            //print(" * a: <%s>  (%s)", link.attr("abs:href"), trim(link.text(), 35));
-        }
-        //System.out.println("answer answer !!! " + productPageLink(linksfromGoogle, "amazon"));
-        int ans = productPageLink(linksfromGoogle, Ecommerce);
-        //System.out.println(Ecommerce + " " + ans);
-        if(ans >= 0) {
-            ecommerceUrl.add(linksfromGoogle.get(ans));
+        if(extractDetailFromUrl.isProductUrl(productUrl)) {
+            ecommerceUrl.add(productUrl);
             ecommerceName.add(Ecommerce);
             productEcommerceIcon.add(index);
-            productTitle.add(textfromGoogle.get(ans));
+            productTitle.add(doc.select("div.rc").first().select("a[href]").text());
+        } else {
+            Elements links = doc.select("a[href]");
+            Elements media = doc.select("[src]");
+            Elements imports = doc.select("link[href]");
+
+           /* print("\nMedia: (%d)", media.size());
+            for (Element src : media) {
+                if (src.tagName().equals("img"))
+                    print(" * %s: <%s> %sx%s (%s)",
+                            src.tagName(), src.attr("abs:src"), src.attr("width"), src.attr("height"),
+                            trim(src.attr("alt"), 20));
+                else
+                    print(" * %s: <%s>", src.tagName(), src.attr("abs:src"));
+            }
+    01:10:25.857
+            print("\nImports: (%d)", imports.size());
+            for (Element link : imports) {
+                print(" * %s <%s> (%s)", link.tagName(),link.attr("abs:href"), link.attr("rel"));
+            }
+
+    */
+            System.out.println(doc.select("div.rc").first().select("a[href]"));
+            print("\nLinks: (%d)", links.size());
+            for (Element link : links) {
+                if (link.attr("abs:href").contains(Ecommerce)) {
+                    linksfromGoogle.add(link.attr("abs:href"));
+                    textfromGoogle.add(link.text().trim());
+                }
+                //print(" * a: <%s>  (%s)", link.attr("abs:href"), trim(link.text(), 35));
+            }
+            System.out.println(linksfromGoogle.size());
+            //System.out.println("answer answer !!! " + productPageLink(linksfromGoogle, "amazon"));
+            int ans = productPageLink(linksfromGoogle, Ecommerce);
+            //System.out.println(Ecommerce + " " + ans);
+            if (ans >= 0) {
+                ecommerceUrl.add(linksfromGoogle.get(ans));
+                ecommerceName.add(Ecommerce);
+                productEcommerceIcon.add(index);
+                productTitle.add(textfromGoogle.get(ans));
+            }
         }
     }
 
 
-    public int productPageLink(ArrayList<String> links, String ECommerce) {
-        String Url = null;
+    public int productPageLink(ArrayList<String> links, String Ecommerce) {
+
         for(int i = 0;i < links.size(); i++) {
             int flag = 0;
-            String pattern = "http://www." +ECommerce;
             String url = links.get(i);
-            if(url.length() >= pattern.length()) {
-                String ans = url.substring(0, pattern.length());
-                //System.out.println(">>>> url " + pattern + " " + ans);
-                if(ans.equals(pattern)) {
-                    flag = 1;
-                }
-            }
-            pattern = "https://www." +ECommerce;
-            if(url.length() >= pattern.length()) {
-                String ans = url.substring(0, pattern.length() );
-                //System.out.println(">>>> url " + pattern + " " + ans);
-                if(ans.equals(pattern)) {
-                    flag = 1;
-                }
-            }
+            Pattern pattern = Pattern.compile(Ecommerce);
+            Matcher matcher = pattern.matcher(url);
+            if(matcher.find()) {
+                if(!ecommerce.equals("")) {
+                    String ecommerceRegex = ecommerceTagRegex.get(Ecommerce);
+                    pattern = Pattern.compile(ecommerceRegex);
+                    matcher = pattern.matcher(url);
+                    if(matcher.find()) {
+                        return i;
+                    }
+                    if(ecommerce.equals("amazon")) {
+                        ecommerceRegex = "\\/gp\\/";
+                        pattern = Pattern.compile(ecommerceRegex);
+                        matcher = pattern.matcher(url);
+                        if(matcher.find()) {
+                            return i;
+                        }
 
-            pattern = "http://m." +ECommerce;
-            if(url.length() >= pattern.length()) {
-                String ans = url.substring(0, pattern.length() );
-                //System.out.println(">>>> url " + pattern + " " + ans);
-                if(ans.equals(pattern)) {
-                    flag = 1;
+                    }
                 }
-            }
-
-            pattern = "https://m." +ECommerce;
-            if(url.length() >= pattern.length()) {
-                String ans = url.substring(0, pattern.length() );
-                //System.out.println(">>>> url " + pattern + " " + ans);
-                if(ans.equals(pattern)) {
-                    flag =1;
-                }
-            }
-            if(flag == 1 && extractDetailFromUrl.isProductUrl(url)) {
-                return i;
             }
 
         }
