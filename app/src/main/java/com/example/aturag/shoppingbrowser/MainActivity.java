@@ -18,6 +18,7 @@ import android.os.Bundle;
 import android.support.v7.widget.DefaultItemAnimator;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
+import android.util.Pair;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
@@ -50,6 +51,7 @@ import java.util.regex.Pattern;
 import Product.DatabaseTable;
 import Product.ExtractDetailFromUrl;
 import Product.ProductInfo;
+import ConnectToServer.*;
 
 public class MainActivity extends FragmentActivity {
 
@@ -104,6 +106,7 @@ public class MainActivity extends FragmentActivity {
         mViewPager = (ViewPager) findViewById(R.id.pager);
         mViewPager.setAdapter(mDemoCollectionPagerAdapter);*/
         init();
+        new ServletAsyncTask().execute(new Pair<Context, String>(this, "https://www.google.com/search?q=anurag+yadav"));
     }
 
     private void init() {
