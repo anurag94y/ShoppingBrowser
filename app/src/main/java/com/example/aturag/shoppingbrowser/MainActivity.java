@@ -106,7 +106,7 @@ public class MainActivity extends FragmentActivity {
         mViewPager = (ViewPager) findViewById(R.id.pager);
         mViewPager.setAdapter(mDemoCollectionPagerAdapter);*/
         init();
-        new ServletAsyncTask().execute(new Pair<Context, String>(this, "https://www.google.com/search?q=anurag+yadav"));
+        //new ServletAsyncTask(queryNumber).execute(new Pair<Context, String>(this, "http://www.snapdeal.com/product/micromax-32b4500mhd-81-cm-32/640439490139"));
     }
 
     private void init() {
@@ -253,7 +253,9 @@ public class MainActivity extends FragmentActivity {
         final String Url = url;
         productInfoList.clear();
         productAdapter.notifyDataSetChanged();
-        System.out.println("!!!!!!!!!!!!!!!!!!!!!" + url + "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!");
+        System.out.println("!!!!!!!! url for server " + url);
+        new ServletAsyncTask(queryNumber).execute(new Pair<Context, String>(this, url));
+        /*System.out.println("!!!!!!!!!!!!!!!!!!!!!" + url + "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!");
         try {
             new AsyncTask<Void, Void, Void>() {
                 @Override
@@ -283,7 +285,7 @@ public class MainActivity extends FragmentActivity {
             }.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR);
         } catch (Exception e) {
             System.out.println("Error !!! " + e.getMessage());
-        }
+        }*/
     }
 
     private String Parse_Uri(final String Url) { // Input Can be http/https :// google.com or www.google.com or google
@@ -545,6 +547,10 @@ public class MainActivity extends FragmentActivity {
     }
 
 
+    public static void serverStop() {
+        queryNumber++;
+    }
+
     private void handelListItemClick(String url) {
         // close search view if its visible
         System.out.println("Item Click Running");
@@ -553,7 +559,6 @@ public class MainActivity extends FragmentActivity {
             searchView.setQuery(url, false);
             OpenUrl(url);
         }
-
     }
 
 }

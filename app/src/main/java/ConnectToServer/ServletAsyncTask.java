@@ -6,6 +6,8 @@ import android.util.Log;
 import android.util.Pair;
 import android.widget.Toast;
 
+import com.example.aturag.shoppingbrowser.MainActivity;
+
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.File;
@@ -18,16 +20,24 @@ import java.io.UnsupportedEncodingException;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.net.URLEncoder;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
 
 import javax.net.ssl.HttpsURLConnection;
+
+import Product.ProductInfo;
 
 /**
  * Created by Aturag on 30-Jun-16.
  */
 public class ServletAsyncTask extends AsyncTask<Pair<Context, String>, Void, String> {
     private Context context;
+    private int queryNumber;
+
+    public ServletAsyncTask(int queryNumber) {
+        this.queryNumber = queryNumber;
+    }
 
     @Override
     protected String doInBackground(Pair<Context, String>... params) {
@@ -36,7 +46,7 @@ public class ServletAsyncTask extends AsyncTask<Pair<Context, String>, Void, Str
 
         try {
             // Set up the request
-            URL url = new URL("http://shopping-browser-1358.appspot.com/hello");
+            URL url = new URL("http://psychic-empire-135722.appspot.com/hello");
             HttpURLConnection connection = (HttpURLConnection) url.openConnection();
             connection.setRequestMethod("POST");
             connection.setDoInput(true);
@@ -98,7 +108,28 @@ public class ServletAsyncTask extends AsyncTask<Pair<Context, String>, Void, Str
     protected void onPostExecute(String result) {
         System.out.println("!!!!!!!! server result " + result);
         Toast.makeText(context, result, Toast.LENGTH_LONG).show();
+        result = result.replace("##", "\r\n");
+        System.out.println("Server Replace " + result);
         writeToFile(result);
+        //updateProductList(result);
+        //MainActivity.serverStop();
+    }
+
+    private void updateProductList(String result) {
+        ArrayList<ProductInfo> productInfoList = new ArrayList<>();
+        String arr[] = result.split("\r\n");
+        for(int i = 0;i < arr.length;) {
+            ProductInfo productInfo = new ProductInfo();
+            productInfo.setName(arr[i]);
+            productInfo.setUrl(arr[i + 1]);
+            productInfo.setPrice(arr[i + 2]);
+            productInfo.setEcommerceIcon(Integer.parseInt(arr[i + 3]));
+            productInfoList.add(productInfo);
+            MainActivity.datachanged(productInfoList, queryNumber);
+            MainActivity._handler.sendEmptyMessage(queryNumber);
+            i = i + 4;
+        }
+
     }
 
     private void writeToFile(String data) {

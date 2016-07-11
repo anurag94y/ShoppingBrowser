@@ -19,7 +19,7 @@ public class MyServlet extends HttpServlet {
     public void doGet(HttpServletRequest req, HttpServletResponse resp)
             throws IOException {
         resp.setContentType("text/plain");
-        resp.getWriter().println("Please use the form to POST to this url");
+        //resp.getWriter().println("Please use the form to POST to this url");
     }
 
     @Override
@@ -28,9 +28,9 @@ public class MyServlet extends HttpServlet {
         String url = req.getParameter("url");
         resp.setContentType("text/plain");
         if(url == null) {
-            resp.getWriter().println("Please enter a name");
+            //resp.getWriter().println("Please enter a name");
         }
-        resp.getWriter().println("Hello " + url);
+       // resp.getWriter().println("Hello " + url);
         ArrayList<BackendProductInfo> temp =  getProductDetailFromServer(url, resp);
         print(temp,resp);
     }
@@ -43,7 +43,7 @@ public class MyServlet extends HttpServlet {
                 return extractDetailFromUrl.isValidProduct(Url, 1, resp);
 
             } else {
-                resp.getWriter().println("No it is not product Page");
+                //resp.getWriter().println("No it is not product Page");
             }
         } catch (Exception e) {
             //System.out.println(e.getMessage());
@@ -53,8 +53,9 @@ public class MyServlet extends HttpServlet {
     }
 
     private void print(ArrayList<BackendProductInfo> productInfoArrayList,HttpServletResponse resp) throws IOException {
-        if(productInfoArrayList == null || productInfoArrayList.size() == 0)
-            resp.getWriter().println("Nhi hai kuch ");
+        if(productInfoArrayList == null || productInfoArrayList.size() == 0) {
+            //resp.getWriter().println("Nhi hai kuch ");
+        }
         else {
             String builder = "";
             for (BackendProductInfo productInfo : productInfoArrayList) {
@@ -62,7 +63,7 @@ public class MyServlet extends HttpServlet {
                 builder = builder + ("price:" + productInfo.getPrice() + "\n");
                 builder = builder + ("url:" + productInfo.getUrl() + "\n");
             }
-            resp.getWriter().println(builder);
+            //resp.getWriter().println(builder);
         }
 
     }

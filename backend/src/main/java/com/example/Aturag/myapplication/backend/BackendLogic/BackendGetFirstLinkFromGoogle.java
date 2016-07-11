@@ -41,13 +41,13 @@ public class BackendGetFirstLinkFromGoogle {
         ArrayList<BackendProductInfo> backendProductInfoList = new ArrayList<>();
         //MainActivity.datachanged(backendProductInfoList, queryNumber);
         //MainActivity._handler.sendEmptyMessage(1);
-        for(int i = 0; i < 1; i++) {
+        for(int i = 0; i < ecommerce.length; i++) {
             try {
                 String var = Url + "+" + ecommerce[i];
-                resp.getWriter().println();
+                //resp.getWriter().println();
                 crawlGoogle(var, ecommerce[i], i,resp);
             } catch (Exception e) {
-                resp.getWriter().println(e.getMessage());
+                //resp.getWriter().println(e.getMessage());
             }
         }
 
@@ -68,6 +68,7 @@ public class BackendGetFirstLinkFromGoogle {
                     backendProductInfo.setEcommerceIcon(productEcommerceIcon.get(i));
                     backendProductInfo.setUrl(ecommerceUrl.get(i));
                     backendProductInfoList.add(backendProductInfo);
+                    resp.getWriter().println(getResultString(backendProductInfo));
                     //MainActivity.datachanged(backendProductInfoList, queryNumber);
                    // MainActivity._handler.sendEmptyMessage(queryNumber);
                 }
@@ -86,6 +87,15 @@ public class BackendGetFirstLinkFromGoogle {
         return backendProductInfoList;
     }
 
+    private String getResultString(BackendProductInfo backendProductInfo) {
+        StringBuilder build = new StringBuilder();
+        build.append(backendProductInfo.getName() + "##");
+        build.append(backendProductInfo.getUrl() + "##");
+        build.append(backendProductInfo.getPrice() + "##");
+        build.append(backendProductInfo.getEcommerceIcon() + "##");
+        return build.toString();
+    }
+
 
     public void crawlGoogle(String Url,String Ecommerce,int index, HttpServletResponse resp)  {
         try {
@@ -99,10 +109,10 @@ public class BackendGetFirstLinkFromGoogle {
                 //e.printStackTrace();
             }
 
-            resp.getWriter().println("Doc " + doc + " url " + Url);
+         //   resp.getWriter().println("!!!! Doc  !!!!" + doc + " url " + Url);
 
-            /*String productUrl = doc.select("div.rc").first().select("a[href]").attr("abs:href");
-            //resp.getWriter().println("Product Url " + productUrl);
+            String productUrl = doc.select("div.rc").first().select("a[href]").attr("abs:href");
+            resp.getWriter().println("Product Url " + productUrl);
 
             if(extractDetailFromUrl.isProductUrl(productUrl, resp)) {
                 ecommerceUrl.add(productUrl);
@@ -111,7 +121,7 @@ public class BackendGetFirstLinkFromGoogle {
                 productTitle.add(doc.select("div.rc").first().select("a[href]").text());
             }
             else {
-                *//*Elements links = doc.select("a[href]");
+               /* Elements links = doc.select("a[href]");
                 Elements media = doc.select("[src]");
                 Elements imports = doc.select("link[href]");
 
@@ -128,7 +138,7 @@ public class BackendGetFirstLinkFromGoogle {
                 print("\nImports: (%d)", imports.size());
                 for (Element link : imports) {
                     print(" * %s <%s> (%s)", link.tagName(),link.attr("abs:href"), link.attr("rel"));
-                }*//**//**//**//*
+                }
 
                 resp.getWriter().println(doc.select("div.rc").first().select("a[href]"));
                 //print("\nLinks: (%d)", links.size());
@@ -148,8 +158,8 @@ public class BackendGetFirstLinkFromGoogle {
                     ecommerceName.add(Ecommerce);
                     productEcommerceIcon.add(index);
                     productTitle.add(textfromGoogle.get(ans));
-                }*//*
-            }*/
+                }*/
+            }
         } catch (Exception e) {
         }
     }

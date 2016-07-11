@@ -160,11 +160,17 @@ public class BackendProductDetails {
 
     private void Paras_function(final String Url) {
         try {
-
-            doc = Jsoup.connect(Url).userAgent("Mozilla/5.0 (Macintosh; Intel Mac OS X 10_11_5) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/51.0.2704.84 Safari/537.36").get();
-           // System.out.println("doc doc " + Url + doc);
-            resp.getWriter().println("doc doc" + doc);
+            resp.getWriter().println("Url in Paras Function " + Url);
+            //doc = Jsoup.connect(Url).userAgent("Mozilla/5.0 (Macintosh; Intel Mac OS X 10_11_5) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/51.0.2704.84 Safari/537.36").get();
+            doc = Jsoup.connect(Url).userAgent("Mozilla/5.0 (Windows NT 6.1; Win64; x64; rv:25.0) Gecko/20100101 Firefox/25.0").get();
+            // System.out.println("doc doc " + Url + doc);
+           resp.getWriter().println("doc doc" + doc);
         } catch (Exception e) {
+            try {
+                resp.getWriter().println("Error in Paras function");
+            } catch (IOException e1) {
+                e1.printStackTrace();
+            }
             //System.out.println("Error in Doc !!!!" +  e.getMessage());
         }
     }

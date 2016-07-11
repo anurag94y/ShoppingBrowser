@@ -52,7 +52,7 @@ public class BackendExtractDetailFromUrl {
                 }.execute();*/
                 //BackendProductDetails pb = new BackendProductDetails(Url, ecommerce);
             } catch (Exception e) {
-                resp.getWriter().println("Error in BackendExtractDetailFromUrl  " + e.getMessage() + " " + Url  );
+                //resp.getWriter().println("Error in BackendExtractDetailFromUrl  " + e.getMessage() + " " + Url  );
                 //e.printStackTrace();
             }
         }
