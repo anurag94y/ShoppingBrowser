@@ -8,6 +8,7 @@ package com.example.Aturag.myapplication.backend;
 
 import com.example.Aturag.myapplication.backend.BackendLogic.BackendExtractDetailFromUrl;
 import com.example.Aturag.myapplication.backend.BackendLogic.BackendProductInfo;
+import com.google.gson.Gson;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -30,7 +31,7 @@ public class MyServlet extends HttpServlet {
         if(url == null) {
             resp.getWriter().println("Please enter a name");
         }
-        resp.getWriter().println("Hello " + url);
+        //resp.getWriter().println("Hello " + url);
         ArrayList<BackendProductInfo> temp =  getProductDetailFromServer(url, resp);
         print(temp,resp);
     }
@@ -39,11 +40,11 @@ public class MyServlet extends HttpServlet {
         try {
             BackendExtractDetailFromUrl extractDetailFromUrl = new BackendExtractDetailFromUrl();
             if (extractDetailFromUrl.isProductUrl(Url,resp)) {
-                resp.getWriter().println("!!!! Yes It is product Url My Bro How U identify that !!!!");
+                //resp.getWriter().println("!!!! Yes It is product Url My Bro How U identify that !!!!");
                 return extractDetailFromUrl.isValidProduct(Url, 1, resp);
 
             } else {
-                resp.getWriter().println("No it is not product Page");
+                //resp.getWriter().println("No it is not product Page");
             }
         } catch (Exception e) {
             //System.out.println(e.getMessage());
@@ -54,15 +55,17 @@ public class MyServlet extends HttpServlet {
 
     private void print(ArrayList<BackendProductInfo> productInfoArrayList,HttpServletResponse resp) throws IOException {
         if(productInfoArrayList == null || productInfoArrayList.size() == 0)
-            resp.getWriter().println("Nhi hai kuch ");
+            resp.getWriter().println("");
         else {
             String builder = "";
-            for (BackendProductInfo productInfo : productInfoArrayList) {
+            String jsonString = new Gson().toJson(productInfoArrayList);
+            /*for (BackendProductInfo productInfo : productInfoArrayList) {
                 builder = builder + ("name:" + productInfo.getName() + "\n");
                 builder = builder + ("price:" + productInfo.getPrice() + "\n");
                 builder = builder + ("url:" + productInfo.getUrl() + "\n");
             }
-            resp.getWriter().println(builder);
+            resp.getWriter().println(builder);*/
+            resp.getWriter().println(jsonString);
         }
 
     }

@@ -3,6 +3,7 @@ import android.os.AsyncTask;
 
 import org.jsoup.*;
 import org.jsoup.nodes.*;
+import org.jsoup.select.Elements;
 
 import java.net.*;
 
@@ -163,6 +164,15 @@ public class ProductDetails {
         } catch (Exception e) {
             System.out.println("Error in Doc !!!!" +  e.getMessage());
         }
+    }
+
+    public static void main(String[] args) throws IOException {
+        Document document = null;
+        document = Jsoup.connect("https://m.snapdeal.com/product/sony-klv32w562d-81-cm-32/626989622357").userAgent("Mozilla/5.0 (Macintosh; Intel Mac OS X 10_11_5) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/51.0.2704.84 Safari/537.36").get();
+        Elements element = document.select("#buyPriceBox > div.row.pdp-e-i-PAY > div.pdp-e-i-PAY-r > span:nth-child(2)");
+        System.out.println(element.text());
+        element = document.select("#productOverview > div.col-xs-13.right-card-zoom > div.comp.comp-product-description > div.pdp-elec-topcenter-inner.layout > div:nth-child(1) > h1");
+        System.out.println(element.text());
     }
 
 

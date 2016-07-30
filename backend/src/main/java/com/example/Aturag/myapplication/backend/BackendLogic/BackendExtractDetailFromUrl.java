@@ -33,12 +33,12 @@ public class BackendExtractDetailFromUrl {
         String ecommerce = findEcommerceName(Url);
         if(isProductUrl(Url, resp)) {
             try {
-                resp.getWriter().println(">>>>> Calling to Product Details " + Url);
+                //resp.getWriter().println(">>>>> Calling to Product Details " + Url);
                 BackendProductDetails pd = new BackendProductDetails(Url, ecommerce, resp);
                 String productName = pd.getProductName();
                 final String TrimmedUrl = productName.trim().replaceAll(" +", "+");
                 final String queryUrl = "https://www.google.com/search?q=" + TrimmedUrl;
-                resp.getWriter().println("!!!!!!!!!! Product name " +  productName + " " + pd.getProductPrice() +" !!!!!!!!!!!!!!!!!!!!!!!!");
+                //resp.getWriter().println("!!!!!!!!!! Product name " +  productName + " " + pd.getProductPrice() +" !!!!!!!!!!!!!!!!!!!!!!!!");
                 final BackendGetFirstLinkFromGoogle crawler = new BackendGetFirstLinkFromGoogle();
                 return crawler.getAllEcommerceUrl(queryUrl, queryNumber,resp);
                /* new AsyncTask<Void, Void, Void>() {
@@ -52,7 +52,7 @@ public class BackendExtractDetailFromUrl {
                 }.execute();*/
                 //BackendProductDetails pb = new BackendProductDetails(Url, ecommerce);
             } catch (Exception e) {
-                resp.getWriter().println("Error in BackendExtractDetailFromUrl  " + e.getMessage() + " " + Url  );
+                //resp.getWriter().println("Error in BackendExtractDetailFromUrl  " + e.getMessage() + " " + Url  );
                 //e.printStackTrace();
             }
         }
@@ -62,7 +62,7 @@ public class BackendExtractDetailFromUrl {
 
     public boolean isProductUrl(String Url, HttpServletResponse resp) throws IOException {
         String ecommerce = findEcommerceName(Url);
-        resp.getWriter().println("EcommerceName ->" + ecommerce);
+        //resp.getWriter().println("EcommerceName ->" + ecommerce);
         if(!ecommerce.equals("")) {
             String ecommerceRegex = ecommerceTagRegex.get(ecommerce);
             Pattern pattern = Pattern.compile(ecommerceRegex);

@@ -6,6 +6,13 @@ import android.util.Log;
 import android.util.Pair;
 import android.widget.Toast;
 
+import com.example.aturag.shoppingbrowser.MainActivity;
+import com.google.gson.Gson;
+import com.google.gson.JsonArray;
+import com.google.gson.reflect.TypeToken;
+
+import org.json.JSONArray;
+
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.File;
@@ -18,16 +25,25 @@ import java.io.UnsupportedEncodingException;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.net.URLEncoder;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
 
 import javax.net.ssl.HttpsURLConnection;
 
+import Product.ProductDetails;
+import Product.ProductInfo;
+
 /**
  * Created by Aturag on 30-Jun-16.
  */
-public class ServletAsyncTask extends AsyncTask<Pair<Context, String>, Void, String> {
+public class ServletAsyncTask extends AsyncTask<Pair<Context, String>, String, String> {
     private Context context;
+    int queryNumber;
+
+    public ServletAsyncTask(int queryNumber) {
+        this.queryNumber = queryNumber;
+    }
 
     @Override
     protected String doInBackground(Pair<Context, String>... params) {
@@ -95,9 +111,17 @@ public class ServletAsyncTask extends AsyncTask<Pair<Context, String>, Void, Str
     }
 
     @Override
-    protected void onPostExecute(String result) {
+    public void onPostExecute(String result) {
         System.out.println("!!!!!!!! server result " + result);
-        Toast.makeText(context, result, Toast.LENGTH_LONG).show();
+        //Toast.makeText(context, result, Toast.LENGTH_LONG).show();
+        ArrayList<ProductInfo> productInfoList = new ArrayList<>();
+        try {
+            productInfoList = new Gson().fromJson(result, new TypeToken<ArrayList<ProductInfo>>() {}.getType());
+        } catch (Exception e) {
+            System.out.println("Error in Converting string into list" + e.getMessage());
+        }
+        MainActivity.datachanged(productInfoList, queryNumber);
+        MainActivity._handler.sendEmptyMessage(queryNumber);
         writeToFile(result);
     }
 

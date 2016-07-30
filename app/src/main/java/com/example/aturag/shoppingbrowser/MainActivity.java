@@ -106,7 +106,6 @@ public class MainActivity extends FragmentActivity {
         mViewPager = (ViewPager) findViewById(R.id.pager);
         mViewPager.setAdapter(mDemoCollectionPagerAdapter);*/
         init();
-        new ServletAsyncTask().execute(new Pair<Context, String>(this, "https://www.google.com/search?q=anurag+yadav"));
     }
 
     private void init() {
@@ -156,7 +155,7 @@ public class MainActivity extends FragmentActivity {
 
 
         //OpenUrl(("http://www.amazon.in/Canon-EOS-1300D-Digital-18-55mm/dp/B01D4EYNUG"));
-        OpenUrl("http://www.snapdeal.com/product/micromax-32b4500mhd-81-cm-32/640439490139");
+        OpenUrl("http://www.amazon.in/Sony-Bravia-KDL-32W700C-inches-Smart/dp/B015WEL8Q8");
         //OpenUrl("http://www.flipkart.com/samsung-galaxy-j7-6-new-2016-edition/p/itmegmrnggh56u22?pid=MOBEG4XWDK4WBGNU&lid=LSTMOBEG4XWDK4WBGNUD7TNFK");
     }
 
@@ -193,32 +192,6 @@ public class MainActivity extends FragmentActivity {
             final String Url = mWebView.getOriginalUrl();
             if(searchView != null)
                 searchView.setQuery(Url, false);
-            if(count >= 1) {
-                /*try {
-                    new AsyncTask<Void, Void, Void>() {
-                        @Override
-                        protected Void doInBackground(Void... params) {
-                            ExtractDetailFromUrl extractDetailFromUrl = new ExtractDetailFromUrl();
-                            if (extractDetailFromUrl.isProductUrl(Url)) {
-                                extractDetailFromUrl.isValidProduct(Url, queryNumber);
-                                System.out.println("!!!! Yes It is product Url My Bro How U identify that !!!!");
-                            } else {
-                                System.out.println("No it is not product Page");
-                            }
-                            return null;
-                        }
-
-                        @Override
-                        protected void onPostExecute(Void aVoid) {
-                            super.onPostExecute(aVoid);
-                            //productAdapter.setProductInfoList(productInfoList);
-                            productAdapter.notifyDataSetChanged();
-                        }
-                    }.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR);
-                } catch (Exception e) {
-                    System.out.println("Error !!! " + e.getMessage());
-                }*/
-            }
             if(refreshMenuItem != null) {
                 refreshMenuItem.setIcon(R.drawable.icon_refresh);
             }
@@ -249,16 +222,22 @@ public class MainActivity extends FragmentActivity {
         }
     }
 
-    private void callForComparePriceList(String url) {
+    private void callForComparePriceList(final String url) {
         final String Url = url;
         productInfoList.clear();
         productAdapter.notifyDataSetChanged();
         System.out.println("!!!!!!!!!!!!!!!!!!!!!" + url + "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!");
         try {
+            new ServletAsyncTask(queryNumber).executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR, new Pair<Context, String>(this, url));
+        } catch(Exception e) {
+            System.out.println("Error in Fetching data from Server" + e.getMessage());
+        }
+       /* try {
             new AsyncTask<Void, Void, Void>() {
                 @Override
                 protected Void doInBackground(Void... params) {
                     try {
+
                         ExtractDetailFromUrl extractDetailFromUrl = new ExtractDetailFromUrl();
                         if (extractDetailFromUrl.isProductUrl(Url)) {
                             extractDetailFromUrl.isValidProduct(Url, queryNumber);
@@ -283,7 +262,7 @@ public class MainActivity extends FragmentActivity {
             }.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR);
         } catch (Exception e) {
             System.out.println("Error !!! " + e.getMessage());
-        }
+        }*/
     }
 
     private String Parse_Uri(final String Url) { // Input Can be http/https :// google.com or www.google.com or google
@@ -295,16 +274,6 @@ public class MainActivity extends FragmentActivity {
         }
         else {
             final String TrimmedUrl = Url.trim().replaceAll(" +", "+");
-            /*final String queryUrl= "https://www.google.com/search?q=" + TrimmedUrl;
-            final GetFirstLinkFromGoogle crawler = new GetFirstLinkFromGoogle();
-            new AsyncTask<Void, Void, Void>() {
-                String var = "";
-                @Override
-                protected Void doInBackground(Void... params) {
-                    crawler.getAllEcommerceUrl(queryUrl);
-                    return null;
-                }
-            }.execute();*/
             return ("https://www.google.com/search?q=" + TrimmedUrl);
         }
     }
@@ -546,7 +515,6 @@ public class MainActivity extends FragmentActivity {
 
 
     private void handelListItemClick(String url) {
-        // close search view if its visible
         System.out.println("Item Click Running");
         if (searchView!= null && searchMenuItem != null) {
             searchMenuItem.collapseActionView();

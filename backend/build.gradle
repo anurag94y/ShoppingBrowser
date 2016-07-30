@@ -30,6 +30,9 @@ dependencies {
     // https://mvnrepository.com/artifact/org.jsoup/jsoup
     compile 'org.jsoup:jsoup:1.7.2'
 
+    // https://mvnrepository.com/artifact/com.google.code.gson/gson
+    compile group: 'com.google.code.gson', name: 'gson', version: '1.7.2'
+    //compile 'com.google.android.gms:play-services:9.2.1'
     compile project(path: ':app')
 }
 

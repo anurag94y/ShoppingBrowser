@@ -42,6 +42,7 @@ dependencies {
     // https://mvnrepository.com/artifact/org.jsoup/jsoup
     compile 'org.jsoup:jsoup:1.7.2'
     compile 'com.android.support:recyclerview-v7:23.1.1'
+    compile group: 'com.google.code.gson', name: 'gson', version: '1.7.2'
     compile 'com.android.support:cardview-v7:21.0.+'
 
     // compile 'org.seleniumhq.selenium:selenium-java:2.46.0'
