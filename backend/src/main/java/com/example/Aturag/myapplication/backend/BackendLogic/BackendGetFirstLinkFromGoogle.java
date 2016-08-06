@@ -44,7 +44,7 @@ public class BackendGetFirstLinkFromGoogle {
         for(int i = 0; i < ecommerce.length; i++) {
             try {
                 String var = Url + "+" + ecommerce[i];
-                //resp.getWriter().println();
+                //resp.getWriter().println(var);
                 crawlGoogle(var, ecommerce[i], i,resp);
             } catch (Exception e) {
                 //resp.getWriter().println(e.getMessage());
@@ -54,7 +54,7 @@ public class BackendGetFirstLinkFromGoogle {
         //resp.getWriter().println(ecommerceUrl.size());
 
         for(int i = 0; i < ecommerceUrl.size(); i++ ) {
-            //resp.getWriter().println("Url Url " + ecommerceUrl.get(i) + " " + ecommerceName.get(i) + " " + productTitle.get(i));
+            resp.getWriter().println("Url Url " + ecommerceUrl.get(i) + " " + ecommerceName.get(i) + " " + productTitle.get(i));
             try {
                 //resp.getWriter().println(">>>>> Calling to Product Product Details " + ecommerceUrl.get(i));
                 BackendProductDetails pd = new BackendProductDetails(ecommerceUrl.get(i), ecommerceName.get(i), resp);
@@ -93,15 +93,22 @@ public class BackendGetFirstLinkFromGoogle {
             ArrayList<String> textfromGoogle = new ArrayList<>();
             Document doc = null;
             try {
+                Url = Url.replaceAll("[\"\'|]", "");
                 doc = Jsoup.connect(Url).userAgent("Mozilla/5.0 (Macintosh; Intel Mac OS X 10_11_5) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/51.0.2704.84 Safari/537.36").get();
-
             } catch (Exception e) {
-                //e.printStackTrace();
+                //resp.getWriter().println("Error fetching google search with ecommerce domain " + e);
+                e.printStackTrace();
             }
 
-            //resp.getWriter().println("Doc " + doc + " url " + Url);
+            //resp.getWriter().println( "Doc"+  doc + "url " + Url);
 
-            String productUrl = doc.select("div.rc").first().select("a[href]").attr("abs:href");
+            String productUrl = "";
+            try {
+                productUrl = doc.select("div.rc").first().select("a[href]").attr("abs:href");
+            } catch (Exception e) {
+                //resp.getWriter().println(e);
+            }
+
             //resp.getWriter().println("Product Url " + productUrl);
 
             if(extractDetailFromUrl.isProductUrl(productUrl, resp)) {
@@ -112,26 +119,6 @@ public class BackendGetFirstLinkFromGoogle {
             }
             else {
                 Elements links = doc.select("a[href]");
-                /*Elements media = doc.select("[src]");
-                Elements imports = doc.select("link[href]");
-
-               print("\nMedia: (%d)", media.size());
-                for (Element src : media) {
-                    if (src.tagName().equals("img"))
-                        print(" * %s: <%s> %sx%s (%s)",
-                                src.tagName(), src.attr("abs:src"), src.attr("width"), src.attr("height"),
-                                trim(src.attr("alt"), 20));
-                    else
-                        print(" * %s: <%s>", src.tagName(), src.attr("abs:src"));
-                }
-
-                print("\nImports: (%d)", imports.size());
-                for (Element link : imports) {
-                    print(" * %s <%s> (%s)", link.tagName(),link.attr("abs:href"), link.attr("rel"));
-                }
-
-                resp.getWriter().println(doc.select("div.rc").first().select("a[href]"));
-                //print("\nLinks: (%d)", links.size());*/
                 for (Element link : links) {
                     if (link.attr("abs:href").contains(Ecommerce)) {
                         linksfromGoogle.add(link.attr("abs:href"));

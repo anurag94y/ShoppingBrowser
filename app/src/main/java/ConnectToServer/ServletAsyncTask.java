@@ -114,14 +114,17 @@ public class ServletAsyncTask extends AsyncTask<Pair<Context, String>, String, S
     public void onPostExecute(String result) {
         System.out.println("!!!!!!!! server result " + result);
         //Toast.makeText(context, result, Toast.LENGTH_LONG).show();
-        ArrayList<ProductInfo> productInfoList = new ArrayList<>();
+        ArrayList<ProductInfo> productInfoList = null;
         try {
             productInfoList = new Gson().fromJson(result, new TypeToken<ArrayList<ProductInfo>>() {}.getType());
         } catch (Exception e) {
             System.out.println("Error in Converting string into list" + e.getMessage());
         }
-        MainActivity.datachanged(productInfoList, queryNumber);
-        MainActivity._handler.sendEmptyMessage(queryNumber);
+        System.out.println(productInfoList);
+        if(productInfoList != null) {
+            MainActivity.datachanged(productInfoList, queryNumber);
+            MainActivity._handler.sendEmptyMessage(queryNumber);
+        }
         writeToFile(result);
     }
 

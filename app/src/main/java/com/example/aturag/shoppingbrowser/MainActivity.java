@@ -64,7 +64,6 @@ public class MainActivity extends FragmentActivity {
     DatabaseTable db = new DatabaseTable(this);
     boolean searchStatus = true;
 
-
     private HashMap<Integer, Integer> queryMap = new HashMap<>();
     private CollectionPagerAdapter mDemoCollectionPagerAdapter;
     private  ViewPager mViewPager;
@@ -384,6 +383,14 @@ public class MainActivity extends FragmentActivity {
                 // Ex: launching new activity/screen or show alert message
                 Toast.makeText(MainActivity.this, "Bookmark is Selected", Toast.LENGTH_SHORT).show();
                 return true;
+
+            case R.id.menu_back:
+                if(mWebView.canGoBack()) {
+                    mWebView.goBack();
+                    //callForComparePriceList(mWebView.getUrl());
+                }
+                return true;
+
 
             case R.id.menu_save:
                 Toast.makeText(MainActivity.this, "Save is Selected", Toast.LENGTH_SHORT).show();

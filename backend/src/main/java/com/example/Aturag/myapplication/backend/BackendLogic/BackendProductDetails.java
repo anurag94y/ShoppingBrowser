@@ -141,7 +141,7 @@ public class BackendProductDetails {
 
         if(is_desktop_site) {
             product_name = doc.select("#itemTitle").first().text();
-            product_price = doc.select("span#prcIsum").first().text();
+            product_price = doc.select("#prcIsum").first().text();
         } else {
             product_name = doc.select("span.vip-title").first().text();
             product_price = doc.select("span.vip-price").first().text();

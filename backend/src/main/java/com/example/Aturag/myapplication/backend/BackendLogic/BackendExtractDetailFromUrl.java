@@ -36,9 +36,11 @@ public class BackendExtractDetailFromUrl {
                 //resp.getWriter().println(">>>>> Calling to Product Details " + Url);
                 BackendProductDetails pd = new BackendProductDetails(Url, ecommerce, resp);
                 String productName = pd.getProductName();
+                productName = productName.replaceAll("&"+"nbsp;", " ");
+                productName =  productName.replaceAll(String.valueOf((char) 160), " ");
                 final String TrimmedUrl = productName.trim().replaceAll(" +", "+");
                 final String queryUrl = "https://www.google.com/search?q=" + TrimmedUrl;
-                //resp.getWriter().println("!!!!!!!!!! Product name " +  productName + " " + pd.getProductPrice() +" !!!!!!!!!!!!!!!!!!!!!!!!");
+                resp.getWriter().println("!!!!!!!!!! Product name " +  productName + " " + pd.getProductPrice() +" !!!!!!!!!!!!!!!!!!!!!!!!");
                 final BackendGetFirstLinkFromGoogle crawler = new BackendGetFirstLinkFromGoogle();
                 return crawler.getAllEcommerceUrl(queryUrl, queryNumber,resp);
                /* new AsyncTask<Void, Void, Void>() {

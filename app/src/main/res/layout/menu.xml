@@ -15,6 +15,11 @@
         android:title="Refresh"
         android:showAsAction="always" />
 
+    <item android:id="@+id/menu_back"
+        android:icon="@drawable/icon_back"
+        android:title="Refresh"
+        android:showAsAction="ifRoom" />
+
     <item android:id="@+id/menu_forward"
         android:icon="@drawable/icon_forward"
         android:showAsAction="ifRoom"
