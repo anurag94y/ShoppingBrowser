@@ -2,16 +2,10 @@ package ConnectToServer;
 
 import android.content.Context;
 import android.os.AsyncTask;
-import android.util.Log;
 import android.util.Pair;
-import android.widget.Toast;
 
-import com.example.aturag.shoppingbrowser.MainActivity;
 import com.google.gson.Gson;
-import com.google.gson.JsonArray;
 import com.google.gson.reflect.TypeToken;
-
-import org.json.JSONArray;
 
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
@@ -31,7 +25,7 @@ import java.util.Map;
 
 import javax.net.ssl.HttpsURLConnection;
 
-import Product.ProductDetails;
+import mainactivity.MainActivity;
 import Product.ProductInfo;
 
 /**
@@ -52,7 +46,7 @@ public class ServletAsyncTask extends AsyncTask<Pair<Context, String>, String, S
 
         try {
             // Set up the request
-            URL url = new URL("http://shopping-browser-1358.appspot.com/hello");
+            URL url = new URL("https://beta-shopping-browser.appspot.com/hello");
             HttpURLConnection connection = (HttpURLConnection) url.openConnection();
             connection.setRequestMethod("POST");
             connection.setDoInput(true);

@@ -54,7 +54,7 @@ public class BackendGetFirstLinkFromGoogle {
         //resp.getWriter().println(ecommerceUrl.size());
 
         for(int i = 0; i < ecommerceUrl.size(); i++ ) {
-            resp.getWriter().println("Url Url " + ecommerceUrl.get(i) + " " + ecommerceName.get(i) + " " + productTitle.get(i));
+            //resp.getWriter().println("Url Url " + ecommerceUrl.get(i) + " " + ecommerceName.get(i) + " " + productTitle.get(i));
             try {
                 //resp.getWriter().println(">>>>> Calling to Product Product Details " + ecommerceUrl.get(i));
                 BackendProductDetails pd = new BackendProductDetails(ecommerceUrl.get(i), ecommerceName.get(i), resp);

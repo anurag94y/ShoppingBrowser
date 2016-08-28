@@ -1,14 +1,14 @@
-package Product;
-
-import android.os.AsyncTask;
+package Crawler;
 
 import java.io.IOException;
-import java.util.Comparator;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import Crawler.GetFirstLinkFromGoogle;
+import Product.ProductDetails;
+import Product.ProductInfo;
+
 
 /**
  * Created by Aturag on 20-Jun-16.
@@ -30,18 +30,20 @@ public class ExtractDetailFromUrl {
         ecommercePresent.put("ebay", "1");
     }
 
-    public void isValidProduct(String Url, int queryNumber) {
+    public ArrayList<ProductInfo> isValidProduct(String Url, int queryNumber) throws IOException {
         String ecommerce = findEcommerceName(Url);
         if(isProductUrl(Url)) {
             try {
-                System.out.println(">>>>> Calling to Product Details " + Url);
+                //resp.getWriter().println(">>>>> Calling to Product Details " + Url);
                 ProductDetails pd = new ProductDetails(Url, ecommerce);
                 String productName = pd.getProductName();
+                productName = productName.replaceAll("&"+"nbsp;", " ");
+                productName =  productName.replaceAll(String.valueOf((char) 160), " ");
                 final String TrimmedUrl = productName.trim().replaceAll(" +", "+");
                 final String queryUrl = "https://www.google.com/search?q=" + TrimmedUrl;
-                System.out.println("!!!!!!!!!! Product name " +  productName + "!!!!!!!!!!!!!!!!!!!!!!!!");
+                //resp.getWriter().println("!!!!!!!!!! Product name " +  productName + " " + pd.getProductPrice() +" !!!!!!!!!!!!!!!!!!!!!!!!");
                 final GetFirstLinkFromGoogle crawler = new GetFirstLinkFromGoogle();
-                crawler.getAllEcommerceUrl(queryUrl, queryNumber);
+                //return crawler.getAllEcommerceUrl(queryUrl, queryNumber);
                /* new AsyncTask<Void, Void, Void>() {
                     String var = "";
 
@@ -53,16 +55,17 @@ public class ExtractDetailFromUrl {
                 }.execute();*/
                 //ProductDetails pb = new ProductDetails(Url, ecommerce);
             } catch (Exception e) {
-                System.out.println("Error in ExtractDetailFromUrl  " + e.getMessage() + " " + Url  );
-                e.printStackTrace();
+                //resp.getWriter().println("Error in ExtractDetailFromUrl  " + e.getMessage() + " " + Url  );
+                //e.printStackTrace();
             }
         }
+        return new ArrayList<ProductInfo>();
     }
 
 
-    public boolean isProductUrl(String Url) {
+    public boolean isProductUrl(String Url) throws IOException {
         String ecommerce = findEcommerceName(Url);
-        System.out.println("EcommerceName ->" + ecommerce);
+        //resp.getWriter().println("EcommerceName ->" + ecommerce);
         if(!ecommerce.equals("")) {
             String ecommerceRegex = ecommerceTagRegex.get(ecommerce);
             Pattern pattern = Pattern.compile(ecommerceRegex);
@@ -114,3 +117,4 @@ public class ExtractDetailFromUrl {
         return "";
     }
 }
+

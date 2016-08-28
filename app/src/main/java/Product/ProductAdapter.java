@@ -1,4 +1,4 @@
-package com.example.aturag.shoppingbrowser;
+package Product;
 
 import android.support.v7.widget.CardView;
 import android.support.v7.widget.RecyclerView;
@@ -9,9 +9,9 @@ import android.webkit.WebView;
 import android.widget.ImageView;
 import android.widget.TextView;
 
-import java.util.ArrayList;
+import com.example.aturag.shoppingbrowser.R;
 
-import Product.ProductInfo;
+import java.util.ArrayList;
 
 /**
  * Created by Aturag on 22-Jun-16.

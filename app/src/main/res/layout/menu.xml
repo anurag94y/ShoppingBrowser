@@ -10,14 +10,20 @@
         android:actionViewClass="android.widget.SearchView" />-->
 
     <!-- Refresh -->
+
+    <item android:id="@+id/action_go"
+        android:icon="@drawable/icon_go"
+        android:title="Go"
+        android:showAsAction="always" />
+
     <item android:id="@+id/action_refresh"
         android:icon="@drawable/icon_refresh"
         android:title="Refresh"
-        android:showAsAction="always" />
+        android:showAsAction="ifRoom" />
 
     <item android:id="@+id/menu_back"
         android:icon="@drawable/icon_back"
-        android:title="Refresh"
+        android:title="Back"
         android:showAsAction="ifRoom" />
 
     <item android:id="@+id/menu_forward"
@@ -27,11 +33,13 @@
 
     <item android:id="@+id/menu_bookmark"
         android:icon="@drawable/icon_bookmark"
+        android:showAsAction="ifRoom"
         android:title="Bookmark" />
 
-    <item android:id="@+id/menu_save"
+    <item android:id="@+id/menu_add_bookmark"
         android:icon="@drawable/icon_save"
-        android:title="Save" />
+        android:showAsAction="ifRoom"
+        android:title="Add Bookmark" />
 
 
     <item android:id="@+id/menu_share"
@@ -39,11 +47,11 @@
         android:showAsAction="ifRoom"
         android:title="Share" />
 
-    <item android:id="@+id/menu_delete"
-        android:icon="@drawable/icon_delete"
-        android:title="Delete" />
+    <item android:id="@+id/menu_history"
+        android:icon="@drawable/icon_history"
+        android:showAsAction="ifRoom"
+        android:title="History" />
 
-    <item android:id="@+id/menu_preferences"
-        android:icon="@drawable/icon_settings"
-        android:title="Preferences" />
+    <item android:id="@+id/menu_home"
+        android:title="Home" />
 </menu>

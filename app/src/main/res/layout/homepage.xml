@@ -1,0 +1,66 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical">
+
+
+    <RelativeLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal">
+
+        <ImageView
+            android:id="@+id/hm_amazon"
+            android:layout_width="80dp"
+            android:layout_height="80dp"
+            android:layout_margin="10dp"
+            android:src="@drawable/amazon_icon"/>
+
+        <ImageView
+            android:id="@+id/hm_flipkart"
+            android:layout_width="80dp"
+            android:layout_height="80dp"
+            android:src="@drawable/flipkat_icon"
+            android:layout_marginTop="10dp"
+            android:layout_marginLeft="100dp" />
+
+        <ImageView
+            android:id="@+id/hm_ebay"
+            android:layout_width="80dp"
+            android:layout_height="80dp"
+            android:src="@drawable/ebay_icon"
+            android:layout_marginTop="10dp"
+            android:layout_marginLeft="200dp" />
+
+    </RelativeLayout>
+
+    <RelativeLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal">
+        <ImageView
+            android:id="@+id/hm_snapdeal"
+            android:layout_width="80dp"
+            android:layout_height="80dp"
+            android:src="@drawable/snapdeal_icon"
+            android:layout_marginTop="100dp"
+            android:layout_marginLeft="10dp" />
+
+        <ImageView
+            android:id="@+id/hm_paytm"
+            android:layout_width="80dp"
+            android:layout_height="80dp"
+            android:src="@drawable/paytm_icon"
+            android:layout_marginLeft="100dp"
+            android:layout_marginTop="100dp" />
+
+        <ImageView
+            android:id="@+id/hm_shopclues"
+            android:layout_width="80dp"
+            android:layout_height="80dp"
+            android:src="@drawable/shopclues_icon"
+            android:layout_marginLeft="200dp"
+            android:layout_marginTop="100dp" />
+    </RelativeLayout>
+</RelativeLayout>

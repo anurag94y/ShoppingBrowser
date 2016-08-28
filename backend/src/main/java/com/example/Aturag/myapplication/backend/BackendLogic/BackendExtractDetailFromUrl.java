@@ -40,7 +40,7 @@ public class BackendExtractDetailFromUrl {
                 productName =  productName.replaceAll(String.valueOf((char) 160), " ");
                 final String TrimmedUrl = productName.trim().replaceAll(" +", "+");
                 final String queryUrl = "https://www.google.com/search?q=" + TrimmedUrl;
-                resp.getWriter().println("!!!!!!!!!! Product name " +  productName + " " + pd.getProductPrice() +" !!!!!!!!!!!!!!!!!!!!!!!!");
+                //resp.getWriter().println("!!!!!!!!!! Product name " +  productName + " " + pd.getProductPrice() +" !!!!!!!!!!!!!!!!!!!!!!!!");
                 final BackendGetFirstLinkFromGoogle crawler = new BackendGetFirstLinkFromGoogle();
                 return crawler.getAllEcommerceUrl(queryUrl, queryNumber,resp);
                /* new AsyncTask<Void, Void, Void>() {

@@ -1,72 +1,71 @@
-package com.example.aturag.shoppingbrowser;
+package mainactivity;
+
+
 import android.app.ActionBar;
 import android.app.SearchManager;
 import android.content.Context;
 import android.content.Intent;
 import android.content.pm.ResolveInfo;
+import android.content.res.Configuration;
+import android.database.Cursor;
+import android.graphics.BitmapFactory;
 import android.graphics.drawable.ColorDrawable;
 import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Build;
+import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
+import android.os.Parcelable;
 import android.support.v4.app.FragmentActivity;
 import android.support.v4.app.NavUtils;
 import android.support.v4.app.TaskStackBuilder;
-import android.support.v4.view.ViewPager;
-import android.os.Bundle;
 import android.support.v7.widget.DefaultItemAnimator;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
+import android.text.SpannableStringBuilder;
 import android.util.Pair;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
-import android.view.KeyEvent;
 import android.view.View;
-import android.view.inputmethod.EditorInfo;
-import android.view.inputmethod.InputMethodManager;
 import android.webkit.CookieSyncManager;
 import android.webkit.DownloadListener;
+import android.webkit.URLUtil;
 import android.webkit.WebChromeClient;
 import android.webkit.WebSettings;
 import android.webkit.WebView;
 import android.webkit.WebViewClient;
-import android.widget.AdapterView;
-import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
-import android.widget.ListView;
 import android.widget.ProgressBar;
 import android.widget.SearchView;
-import android.widget.TextView;
 import android.widget.Toast;
 
 
+import com.example.aturag.shoppingbrowser.HomepageActivity;
+import com.example.aturag.shoppingbrowser.R;
+
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
+import java.util.List;
 
-import Product.DatabaseTable;
-import Product.ExtractDetailFromUrl;
+import ConnectToServer.ServletAsyncTask;
+import Crawler.GetFirstLinkFromGoogle;
+import Database.Operations;
+import Product.ProductAdapter;
 import Product.ProductInfo;
-import ConnectToServer.*;
+import bookmarks.Bookmark;
+import bookmarks.BookmarkActivity;
+import history.History;
+import history.HistoryActivity;
 
 public class MainActivity extends FragmentActivity {
 
     //for Search View
-    private ListView urlListView;
     private SearchView searchView = null;
-    private MenuItem searchMenuItem;
-    private SearchAdapter searchAdapter;
-    private ArrayList<String> friendList;
-    DatabaseTable db = new DatabaseTable(this);
-    boolean searchStatus = true;
-
     private HashMap<Integer, Integer> queryMap = new HashMap<>();
-    private CollectionPagerAdapter mDemoCollectionPagerAdapter;
-    private  ViewPager mViewPager;
     private WebView mWebView;
     private ProgressBar mProgressBar;
     public static final int MIN_HTML_ALLOWED_LENGTH = 40;
@@ -80,10 +79,7 @@ public class MainActivity extends FragmentActivity {
     private MenuItem refreshMenuItem = null;
     public static ArrayList<ProductInfo> productInfoList = new ArrayList<>();
 
-    public MainActivity() {
-        //this._isFullScreenBanner = false;
-        //this._handler = new Handler();
-    }
+    private Operations operations;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -100,17 +96,18 @@ public class MainActivity extends FragmentActivity {
         setContentView(R.layout.main_activity);
         enableCookies();
         count = 0;
-        /*mDemoCollectionPagerAdapter = new CollectionPagerAdapter(getSupportFragmentManager());
-        final ActionBar actionBar = getActionBar();
-        mViewPager = (ViewPager) findViewById(R.id.pager);
-        mViewPager.setAdapter(mDemoCollectionPagerAdapter);*/
         init();
+        Intent intent = getIntent();
+        if(intent != null) {
+            OpenUrl(intent.getData().toString());
+        }
     }
 
     private void init() {
         mWebView = (WebView) findViewById(R.id.webView);
         mProgressBar = (ProgressBar) findViewById(R.id.progressBar);
         mProgressBar.setVisibility(View.GONE);
+        operations = new Operations(this);
 
         ActionBar actionBar = getActionBar();
         //actionBar.setDisplayHomeAsUpEnabled(true);
@@ -130,10 +127,13 @@ public class MainActivity extends FragmentActivity {
                 webViewStatus(progress);
             }
         });
-        this.mWebView.resumeTimers();
-        this.mWebView.addJavascriptInterface(new MyJavaScriptInterface(this), "Android");
-        this.mWebView.setWebViewClient(new mWebViewClient());
-        this.mWebView.setDownloadListener(new mDownloadListener());
+        mWebView.resumeTimers();
+        mWebView.addJavascriptInterface(new JavaScriptInterface(this), "Android");
+        mWebView.setWebViewClient(new mWebViewClient());
+        mWebView.getSettings().setUseWideViewPort(true);
+        mWebView.getSettings().setLoadWithOverviewMode(true);
+
+        mWebView.setDownloadListener(new mDownloadListener());
         WebSettings webSettings = mWebView.getSettings();
         webSettings.setJavaScriptEnabled(true);
         webSettings.setDomStorageEnabled(true);
@@ -154,8 +154,13 @@ public class MainActivity extends FragmentActivity {
 
 
         //OpenUrl(("http://www.amazon.in/Canon-EOS-1300D-Digital-18-55mm/dp/B01D4EYNUG"));
-        OpenUrl("http://www.amazon.in/Sony-Bravia-KDL-32W700C-inches-Smart/dp/B015WEL8Q8");
+        //OpenUrl(Parse_Uri("http://www.amazon.in/Sony-Bravia-KDL-32W700C-inches-Smart/dp/B015WEL8Q8"));
         //OpenUrl("http://www.flipkart.com/samsung-galaxy-j7-6-new-2016-edition/p/itmegmrnggh56u22?pid=MOBEG4XWDK4WBGNU&lid=LSTMOBEG4XWDK4WBGNUD7TNFK");
+    }
+
+    @Override
+    public void onConfigurationChanged(Configuration newConfig){
+        super.onConfigurationChanged(newConfig);
     }
 
     @Override
@@ -168,6 +173,7 @@ public class MainActivity extends FragmentActivity {
     public void webViewStatus(int progress) {
         if(progress < 100 && mProgressBar.getVisibility() == ProgressBar.GONE){
             if(!queryMap.containsKey(queryNumber)) {
+                queryNumber++;
                 queryMap.put(queryNumber, 1);
                 productInfoList = new ArrayList<>();
                 productAdapter.setProductInfoList(productInfoList);
@@ -183,19 +189,7 @@ public class MainActivity extends FragmentActivity {
             mProgressBar.setVisibility(ProgressBar.VISIBLE);
         }
         mProgressBar.setProgress(progress);
-        if(progress == 100) {
-            System.out.println("cout >>> " + count);
-            callForComparePriceList(mWebView.getUrl());
-            count++;
-            imageStat = 1;
-            final String Url = mWebView.getOriginalUrl();
-            if(searchView != null)
-                searchView.setQuery(Url, false);
-            if(refreshMenuItem != null) {
-                refreshMenuItem.setIcon(R.drawable.icon_refresh);
-            }
-            mProgressBar.setVisibility(ProgressBar.GONE);
-        }
+
     }
 
 
@@ -216,8 +210,24 @@ public class MainActivity extends FragmentActivity {
     public class mWebViewClient extends WebViewClient {
         @Override
         public boolean shouldOverrideUrlLoading(WebView view, String url) {
-            //callForComparePriceList(url);
+            view.loadUrl(url);
             return super.shouldOverrideUrlLoading(view, url);
+        }
+
+        @Override
+        public void onPageFinished(WebView view, String url) {
+            super.onPageFinished(view, url);
+            operations.insertHistory(operations, mWebView.getUrl(), mWebView.getTitle(), mWebView.getFavicon());
+            callForComparePriceList(mWebView.getUrl());
+            count++;
+            imageStat = 1;
+            final String Url = mWebView.getOriginalUrl();
+            if(searchView != null)
+                searchView.setQuery(Url, false);
+            if(refreshMenuItem != null) {
+                refreshMenuItem.setIcon(R.drawable.icon_refresh);
+            }
+            mProgressBar.setVisibility(ProgressBar.GONE);
         }
     }
 
@@ -227,48 +237,25 @@ public class MainActivity extends FragmentActivity {
         productAdapter.notifyDataSetChanged();
         System.out.println("!!!!!!!!!!!!!!!!!!!!!" + url + "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!");
         try {
-            new ServletAsyncTask(queryNumber).executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR, new Pair<Context, String>(this, url));
-        } catch(Exception e) {
-            System.out.println("Error in Fetching data from Server" + e.getMessage());
-        }
-       /* try {
             new AsyncTask<Void, Void, Void>() {
                 @Override
-                protected Void doInBackground(Void... params) {
+                protected Void doInBackground(Void... voids) {
                     try {
-
-                        ExtractDetailFromUrl extractDetailFromUrl = new ExtractDetailFromUrl();
-                        if (extractDetailFromUrl.isProductUrl(Url)) {
-                            extractDetailFromUrl.isValidProduct(Url, queryNumber);
-                            System.out.println("!!!! Yes It is product Url My Bro How U identify that !!!!");
-                        } else {
-                            System.out.println("No it is not product Page");
-                        }
-                    } catch (Exception e) {
-                        //System.out.println(e.getMessage());
+                        new GetFirstLinkFromGoogle().getAllEcommerceUrl(url, queryNumber);
+                    } catch (IOException e) {
+                        e.printStackTrace();
                     }
                     return null;
                 }
-
-                @Override
-                protected void onPostExecute(Void aVoid) {
-                    super.onPostExecute(aVoid);
-                    //productAdapter.setProductInfoList(productInfoList);
-                    productAdapter.notifyDataSetChanged();
-                    queryNumber++;
-
-                }
             }.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR);
-        } catch (Exception e) {
-            System.out.println("Error !!! " + e.getMessage());
-        }*/
+            //new ServletAsyncTask(queryNumber).executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR, new Pair<Context, String>(this, url));
+        } catch(Exception e) {
+            System.out.println("Error in Fetching data from Server" + e.getMessage());
+        }
     }
 
     private String Parse_Uri(final String Url) { // Input Can be http/https :// google.com or www.google.com or google
-        String regex = "^(?:[a-z]+:)?//";
-        Pattern pattern = Pattern.compile(regex);
-        Matcher matcher = pattern.matcher(Url);
-        if(matcher.matches()) {
+        if(URLUtil.isHttpsUrl(Url) || URLUtil.isHttpUrl(Url)) {
             return Url;
         }
         else {
@@ -281,17 +268,6 @@ public class MainActivity extends FragmentActivity {
         mWebView.loadUrl(url);
     }
 
-
-    @Override
-    public void onBackPressed() {
-        if(mWebView.canGoBack()) {
-            mWebView.goBack();
-            //callForComparePriceList(mWebView.);
-        }
-        else {
-            super.onBackPressed();
-        }
-    }
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
@@ -311,7 +287,7 @@ public class MainActivity extends FragmentActivity {
             getActionBar().setDisplayShowCustomEnabled(true);
             //ComponentName cn = new ComponentName(this, SearchAdapter.class);
             searchView.setSearchableInfo(searchManager.getSearchableInfo(getComponentName()));
-            searchView.setIconifiedByDefault(false);
+            searchView.clearFocus();
             getActionBar().setCustomView(searchView);
             getActionBar().setDisplayShowCustomEnabled(true);
             searchView.setOnQueryTextListener(new SearchView.OnQueryTextListener() {
@@ -323,13 +299,10 @@ public class MainActivity extends FragmentActivity {
 
                 @Override
                 public boolean onQueryTextChange(String newText) {
-                    //initUrlList();
-                    //Cursor c = db.getWordMatches(newText, null);
-                    //searchAdapter.getFilter().filter(newText);
                     return true;
                 }
             });
-          //  searchView.setIconifiedByDefault(false);
+            //  searchView.setIconifiedByDefault(false);
         }
 
         refreshMenuItem = menu.findItem(R.id.action_refresh);
@@ -337,11 +310,46 @@ public class MainActivity extends FragmentActivity {
         return super.onCreateOptionsMenu(menu);
     }
 
-
-
+    @Override
+    public void onBackPressed() {
+        if(mWebView.canGoBack()) {
+            mWebView.goBack();
+            //callForComparePriceList(mWebView.);
+        }
+        else {
+            super.onBackPressed();
+        }
+    }
 
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
+        return selectOptionInMenu(item);
+    }
+
+    protected void onPause() {
+        super.onPause();
+        CookieSyncManager.getInstance().stopSync();
+    }
+
+    protected void onResume() {
+        super.onResume();
+        this.mWebView.resumeTimers();
+        CookieSyncManager.getInstance().startSync();
+    }
+
+    protected void onDestroy() {
+        super.onDestroy();
+        // webViewPlaceholder.removeView(mWebView);
+        try {
+            mWebView.removeAllViews();
+            mWebView.destroy();
+        }
+        catch (Exception e) {
+            System.out.println("Error in Destroy Webview " + e.getMessage());
+        }
+    }
+
+    private boolean selectOptionInMenu(MenuItem item) {
         switch (item.getItemId()) {
             case android.R.id.home:
                 // This is called when the Home (Up) button is pressed in the action bar.
@@ -366,10 +374,10 @@ public class MainActivity extends FragmentActivity {
                 refreshButtonLisener();
                 return true;
 
-            /*case R.id.action_search:
-                System.out.println("!!!!!!!!! submit button start working !!!!!!");
-                onSearchRequested();
-                return true;*/
+            case R.id.action_go:
+                if(searchView != null)
+                    OpenUrl(Parse_Uri((new SpannableStringBuilder(searchView.getQuery()).toString())));
+                return true;
 
             case R.id.menu_forward:
                 if(mWebView.canGoForward()) {
@@ -378,35 +386,36 @@ public class MainActivity extends FragmentActivity {
                 }
                 return true;
 
-            case R.id.menu_bookmark:
-                // Single menu item is selected do something
-                // Ex: launching new activity/screen or show alert message
-                Toast.makeText(MainActivity.this, "Bookmark is Selected", Toast.LENGTH_SHORT).show();
-                return true;
-
             case R.id.menu_back:
                 if(mWebView.canGoBack()) {
                     mWebView.goBack();
-                    //callForComparePriceList(mWebView.getUrl());
                 }
                 return true;
 
+            case R.id.menu_bookmark:
+                // Single menu item is selected do something
+                // Ex: launching new activity/screen or show alert message
+                showBookMark(operations);
+                return true;
 
-            case R.id.menu_save:
-                Toast.makeText(MainActivity.this, "Save is Selected", Toast.LENGTH_SHORT).show();
+            case R.id.menu_add_bookmark:
+                operations.insertBookmark(operations, mWebView.getUrl(), mWebView.getTitle(), mWebView.getFavicon());
+                Toast.makeText(this, "Bookmark added", Toast.LENGTH_SHORT);
                 return true;
 
             case R.id.menu_share:
-                Toast.makeText(MainActivity.this, "Share is Selected", Toast.LENGTH_SHORT).show();
+                shareTextUrl(mWebView.getUrl(), mWebView.getTitle());
                 return true;
 
-            case R.id.menu_delete:
-                Toast.makeText(MainActivity.this, "Delete is Selected", Toast.LENGTH_SHORT).show();
+            case R.id.menu_history:
+                showHistory(operations);
                 return true;
 
-            case R.id.menu_preferences:
-                Toast.makeText(MainActivity.this, "Preferences is Selected", Toast.LENGTH_SHORT).show();
+            case R.id.menu_home:
+                Intent intent = new Intent(this, HomepageActivity.class);
+                startActivity(intent);
                 return true;
+
         }
 
 
@@ -430,7 +439,7 @@ public class MainActivity extends FragmentActivity {
             Intent intent = new Intent("android.intent.action.VIEW", Uri.parse(url));
             ResolveInfo ri = MainActivity.this.getPackageManager().resolveActivity(intent, 0);
             if (ri != null) {
-               //MainActivity.this.startActivity(intent);
+                //HomepageActivity.this.startActivity(intent);
             }
         }
     }
@@ -462,73 +471,66 @@ public class MainActivity extends FragmentActivity {
         return scheme.equals("http") || scheme.equals("https");
     }
 
-    public static boolean deviceCanHandleIntent(Context context, Intent intent) {
-        try {
-            if (context.getPackageManager().queryIntentActivities(intent, 0).isEmpty()) {
-                return false;
-            }
-            return true;
-        } catch (NullPointerException e) {
-            return false;
-        }
-    }
 
-    protected void onPause() {
-        super.onPause();
-        CookieSyncManager.getInstance().stopSync();
-    }
-
-    protected void onResume() {
-        super.onResume();
-        this.mWebView.resumeTimers();
-        CookieSyncManager.getInstance().startSync();
-    }
-
-    protected void onDestroy() {
-        super.onDestroy();
-       // webViewPlaceholder.removeView(mWebView);
-        try {
-            mWebView.removeAllViews();
-            mWebView.destroy();
-        }
-        catch (Exception e) {
-            System.out.println("Error in Destroy Webview " + e.getMessage());
-        }
-    }
-
-    private void initUrlList() {
-        friendList = new ArrayList<>();
-        //intialize friendList
-        urlListView = (ListView) findViewById(R.id.search_listView);
-        searchAdapter = new SearchAdapter(this, friendList);
-
-        // add header and footer for list
-        urlListView.setAdapter(searchAdapter);
-        urlListView.setTextFilterEnabled(false);
-
-        // use to enable search view popup text
-        //friendListView.setTextFilterEnabled(true);
-
-        // set up click listener
-        urlListView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
-            @Override
-            public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-                if(position>0 && position <= friendList.size()) {
-                    handelListItemClick((String)searchAdapter.getItem(position - 1));
-                }
-            }
-        });
-    }
-
-
-    private void handelListItemClick(String url) {
-        System.out.println("Item Click Running");
-        if (searchView!= null && searchMenuItem != null) {
-            searchMenuItem.collapseActionView();
-            searchView.setQuery(url, false);
-            OpenUrl(url);
+    public void showHistory(Operations historyOperations) {
+        Cursor result = historyOperations.getHistory(historyOperations);
+        List<History> listOfHistory = new ArrayList<>();
+        result.moveToFirst();
+        System.out.println(result.toString() + " " + result.getCount());
+        if(result.getCount() >  0) {
+            do {
+                History history = new History();
+                history.setUrl(result.getString(result.getColumnIndex(Operations.PAGE_URL)));
+                history.setTitle(result.getString(result.getColumnIndex(Operations.PAGE_TITLE)));
+                byte[] imgByte = result.getBlob(result.getColumnIndex(Operations.PAGE_IMAGE));
+                history.setImage(imgByte);
+                System.out.println("get history Image " + BitmapFactory.decodeByteArray(imgByte, 0, imgByte.length));
+                listOfHistory.add(history);
+            } while (result.moveToNext());
         }
 
+        System.out.println("Histories !!!!!!!!!!!" + listOfHistory);
+
+        Intent intent = new Intent(this, HistoryActivity.class);
+        intent.putParcelableArrayListExtra("listOfHistory", (ArrayList<? extends Parcelable>) listOfHistory);
+        startActivity(intent);
+    }
+
+    public void showBookMark(Operations bookmarkOperations) {
+        Cursor result = bookmarkOperations.getBookmark(bookmarkOperations);
+        List<Bookmark> listOfBookMark = new ArrayList<>();
+        result.moveToFirst();
+        System.out.println(result.toString() + " " + result.getCount());
+        if(result.getCount() >  0) {
+            do {
+                Bookmark bookmark = new Bookmark();
+                bookmark.setUrl(result.getString(result.getColumnIndex(Operations.PAGE_URL)));
+                bookmark.setTitle(result.getString(result.getColumnIndex(Operations.PAGE_TITLE)));
+                byte[] imgByte = result.getBlob(result.getColumnIndex(Operations.PAGE_IMAGE));
+                bookmark.setImage(imgByte);
+                System.out.println("get bookmark Image " + BitmapFactory.decodeByteArray(imgByte, 0, imgByte.length));
+                listOfBookMark.add(bookmark);
+            } while (result.moveToNext());
+        }
+
+        System.out.println("Bookmarks !!!!!!!!!!!" + listOfBookMark);
+
+        Intent intent = new Intent(this, BookmarkActivity.class);
+        intent.putParcelableArrayListExtra("listOfBookmark", (ArrayList<? extends Parcelable>) listOfBookMark);
+        startActivity(intent);
+    }
+
+    private void shareTextUrl(String url, String title) {
+        Intent share = new Intent(android.content.Intent.ACTION_SEND);
+        share.setType("text/plain");
+        share.addFlags(Intent.FLAG_ACTIVITY_CLEAR_WHEN_TASK_RESET);
+
+        // Add data to the intent, the receiving app will decide
+        // what to do with it.
+        share.putExtra(Intent.EXTRA_SUBJECT, title);
+        share.putExtra(Intent.EXTRA_TEXT, url);
+
+        startActivity(Intent.createChooser(share, "Share link!"));
     }
 
 }
